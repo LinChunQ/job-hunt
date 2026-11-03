@@ -10,8 +10,11 @@
   "scripts": {
     "test": "node --test",
     "privacy": "node scripts/privacy-check.mjs",
-    "check": "npm run privacy && npm test",
-    "release:check": "node scripts/release-check.mjs"
+    "check": "npm run privacy && npm run docs:check && npm test",
+    "release:check": "node scripts/release-check.mjs",
+    "docs:sync": "node scripts/configure-github.mjs",
+    "github:configure": "node scripts/configure-github.mjs",
+    "docs:check": "node scripts/configure-github.mjs --check"
   },
   "files": [
     "SKILL.md",

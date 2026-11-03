@@ -18,7 +18,7 @@
 ## GitHub 与更新
 
 1. 自行创建 GitHub 仓库并绑定远端；此包不预设账号，不自动 push。
-2. `release.json` 的 `githubRepository` 填 `owner/repository`；package、release、extension 三处版本保持一致。
+2. 运行 `npm run github:configure -- --repository owner/repository`，同步更新来源和 README 动态徽章；不设置远端、不推送。package、release、extension 三处版本保持一致，调整版本后运行 `npm run docs:sync`。
 3. 运行 `npm run check`、`npm run release:check`，审查历史；维护者选择许可证后再分发。
 4. 用 `v主版本.次版本.修订号` 的正式 Release 标签。只从检查通过的提交构建，不压缩整个工作目录；GitHub 自动源码归档来自该提交。
 5. `update check` 只查询配置仓库的最新正式 Release，不上传本机数据。未配置时不联网。
