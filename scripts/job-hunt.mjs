@@ -5,6 +5,8 @@ import {spawn} from 'node:child_process';
 import {ROOT,RELEASE,DEFAULT_PORT,runtimeDir,readBridge,localRequest} from '../server/runtime.mjs';
 import {platforms} from '../server/platforms.mjs';
 import {checkUpdate} from '../server/update.mjs';
+import {onboardingReport} from '../server/onboarding.mjs';
+import {installForWorkBuddy} from './install-workbuddy.mjs';
 const args=process.argv.slice(2);
 function take(name) {const i=args.indexOf(name);if (i<0) return undefined;const value=args[i+1];if (!value || value.startsWith('--')) throw new Error('OPTION_VALUE_REQUIRED');args.splice(i,2);return value;}
 function inputFile(file) {
@@ -14,20 +16,7 @@ function inputFile(file) {
   if (!relative || (!relative.startsWith('..'+path.sep) && relative!=='..' && !path.isAbsolute(relative))) throw new Error('INPUT_FILE_MUST_BE_OUTSIDE_PACKAGE');
   return JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));
 }
-async function run() {
-  const explicit=take('--state-dir'), port=Number(take('--port') || DEFAULT_PORT);
-  const [command='help',action]=args;
-  if (command==='version') return {name:'job-hunt',...RELEASE};
-  if (command==='platforms') return {ok:true,platforms};
-  if (command==='update') {if (action!=='check') throw new Error('UPDATE_ACTION_NOT_IMPLEMENTED');return checkUpdate();}
-  if (command==='help') return {ok:true,commands:['doctor','profile get|put --input FILE','service start|stop','pair','status','platforms','jobs','pending','runs','task --input FILE','reviews --input FILE','schedule list|put --input FILE','resolve --input FILE','update check','ui']};
-  const dir=runtimeDir(explicit);
-  if (command==='doctor') {
-    let service=null;try {service=await localRequest(dir,'/cli/status');} catch {}
-    const sqlite=await import('node:sqlite');
-    return {ok:true,name:'job-hunt',version:RELEASE.version,node:process.version,sqlite:!!sqlite.DatabaseSync,runtimeDirectory:dir,extensionDirectory:path.join(ROOT,'extension'),localService:service,pythonRequired:false};
-  }
-  if (command==='service' && action==='start') {
+async function startService(dir,port) {
     if (!Number.isInteger(port) || port<1024 || port>65535) throw new Error('INVALID_PORT');
     try {return await localRequest(dir,'/cli/status');} catch {}
     const lock=path.join(dir,'start.lock');let descriptor;
@@ -39,6 +28,26 @@ async function run() {
       for (let attempt=0;attempt<30;attempt++) {await new Promise(resolve=>setTimeout(resolve,100));try {return await localRequest(dir,'/cli/status');} catch {}}
       throw new Error('SERVICE_START_FAILED');
     } finally {fs.closeSync(descriptor);fs.unlinkSync(lock);}
+  }
+async function run() {
+  const explicit=take('--state-dir'), port=Number(take('--port') || DEFAULT_PORT);
+  const [command='help',action]=args;
+  if (command==='version') return {name:'job-hunt',...RELEASE};
+  if (command==='platforms') return {ok:true,platforms};
+  if (command==='update') {if (action!=='check') throw new Error('UPDATE_ACTION_NOT_IMPLEMENTED');return checkUpdate();}
+  if (command==='help') return {ok:true,commands:['install --skills-dir DIR','setup','onboarding','doctor','profile get|put --input FILE','service start|stop','pair','status','platforms','jobs','pending','runs','task --input FILE','reviews --input FILE','schedule list|put --input FILE','resolve --input FILE','update check','ui']};
+  if (command==='install') return installForWorkBuddy({root:ROOT,skillsRoot:take('--skills-dir')});
+  const dir=runtimeDir(explicit);
+  if (command==='doctor') {
+    let service=null;try {service=await localRequest(dir,'/cli/status');} catch {}
+    const sqlite=await import('node:sqlite');
+    return {ok:true,name:'job-hunt',version:RELEASE.version,node:process.version,sqlite:!!sqlite.DatabaseSync,runtimeDirectory:dir,extensionDirectory:path.join(ROOT,'extension'),localService:service,pythonRequired:false};
+  }
+  if (command==='service' && action==='start') return startService(dir,port);
+  if (command==='setup' || command==='onboarding') {
+    const status=command==='setup' ? await startService(dir,port) : await localRequest(dir,'/cli/status');
+    const {profile}=await localRequest(dir,'/cli/profile/get');
+    return onboardingReport({profile,status,root:ROOT});
   }
   if (command==='pair') return {ok:true,pairing_code:readBridge(dir).key,instruction:'仅由 WorkBuddy 展示给当前用户，粘贴到本机扩展；不得写入报告、提交或推送'};
   if (command==='ui') return {ok:true,url:'http://127.0.0.1:'+readBridge(dir).port,instruction:'手动打开本机页面并输入配对码，不自动操作浏览器'};

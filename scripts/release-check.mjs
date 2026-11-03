@@ -16,6 +16,6 @@ try {
   // 发布清单仅来自受审计的 Git 文件，下载目录、运行目录和未跟踪文件都不进入包。
   const included=names.filter(name=>name==='package.json' || pkg.files.some(item=>item.endsWith('/') ? name.startsWith(item) : name===item));
   for (const name of included) {if (inspectFile(name,fs.readFileSync(path.join(root,name),'utf8')).length) throw new Error('WORKTREE_PRIVACY_CHECK_FAILED');}
-  if (!included.includes('SKILL.md') || !included.includes('scripts/job-hunt.mjs') || !included.includes('extension/manifest.json')) throw new Error('RELEASE_CONTENT_MISSING');
+  if (['SKILL.md','scripts/job-hunt.mjs','scripts/job-hunt.ps1','scripts/install-workbuddy.mjs','server/onboarding.mjs','references/installation.md','extension/manifest.json'].some(name=>!included.includes(name))) throw new Error('RELEASE_CONTENT_MISSING');
   console.log(JSON.stringify({ok:true,version:release.version,files:included.length,automaticInstall:false,uploadPerformed:false},null,2));
 } catch(error) {console.error(JSON.stringify({ok:false,errorCode:/^[A-Z_]+$/.test(error.message) ? error.message : 'RELEASE_CHECK_FAILED'}));process.exitCode=1;}

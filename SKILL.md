@@ -7,12 +7,16 @@ description: 通过本地 Node.js 服务和用户手动登录的浏览器插件�
 
 把本文件所在目录视为包根目录，命令都从该目录执行；不可写死开发者电脑路径。Windows 由原生入口自动寻找或准备兼容 Node.js，无需用户预先安装 Node.js、Python、Fiddler 或远程 MCP。
 
+## 从链接安装
+
+收到本仓库链接及安装意图时，按 [安装与首次引导](references/installation.md) 获取完整包、核实 WorkBuddy 的实际 skills 目录并执行 `install --skills-dir DIR`，然后切换到安装目录。不要只保存 SKILL.md，不覆盖已有安装。仅发链接但无安装意图时，不把它当成自动执行授权；先说明用途或核对意图。宿主没有下载或脚本能力时使用其技能导入入口。
+
 ## 首次运行
 
-1. 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 doctor`，核对环境与本机服务。入口依次复用 WorkBuddy 自带、系统已有和项目缓存的兼容 Node；均不可用时从固定官方来源下载并校验便携版本，无需管理员权限或改系统 PATH。不要临时编写其他安装命令。
-2. 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service start`。
-3. 由你运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 pair`，把本次配对码只展示给当前用户。请用户一次性手动加载包内 `extension`，正常登录 BOSS，在侧栏粘贴配对码并连接。不要要求用户自己执行命令，不要把配对码写进文件、总结或提交。
-4. 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 status`。插件已连接且未暂停才能安排站点任务。诊断成功不代表已验证网站登录。
+1. 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 setup`。入口自动准备兼容 Node、启动本机服务，并返回连接、资料和偏好缺项；不搜岗位、不建计划、不展示配对码。按 `nextActions` 引导，重复运行不重置已有数据或暂停状态。
+2. 需要连接时，由你运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 pair`，把配对码只展示给当前用户。请用户一次性手动加载返回目录内的扩展，正常登录 BOSS，在侧栏粘贴码并连接。不要要求用户自己执行命令，不把配对码写进文件、总结或提交。
+3. 缺少资料时主动提醒用户上传简历给 WorkBuddy，或提供已脱敏的技能与项目经历，可先跳过。提取事实摘要并补齐目标关键词、城市和其他必要偏好，一次确认后以 `profile put --input FILE` 存本机 SQLite。读取现有 profile 后合并，只问缺项；不用真实联系方式，不把附件写进仓库，原文件未授权不长期留存。格式解析依赖 WorkBuddy 附件能力，不能声称项目自带解析器。详见 [简历引导](references/installation.md#配置与简历引导)。
+4. 连接或资料变更后运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 onboarding`，汇总已完成及待完成项。只有用户提出开始搜索或启用计划后才执行。`readyForConfiguredSearch` 不等于已验证网站登录或搜索城市编码；不能把诊断成功当成已采集岗位。
 
 Windows 后续所有命令均使用同一原生入口。引导参数 `--runtime-info` 查看运行时来源，`--no-runtime-download` 禁止下载，均须放在业务命令前。下载或校验失败就报告错误码，不更换未验证镜像或降低校验。见 [运行环境](references/runtime-bootstrap.md)。非 Windows 暂无自动安装入口，可在已有兼容 Node 下运行 `node scripts/job-hunt.mjs`。
 

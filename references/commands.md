@@ -4,6 +4,8 @@ Windows 从包根目录运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass
 
 | 命令 | 作用 |
 | --- | --- |
+| `install --skills-dir DIR` | 复制公开包到已核实的 skill 目录，不覆盖旧安装 |
+| `setup` / `onboarding` | 启动并引导 / 只复查缺项，无站点动作 |
 | `doctor` / `version` / `platforms` | 本机诊断、版本、平台 |
 | `service start` / `service stop` | 启停服务 |
 | `pair` | 只向当前用户展示配对码 |

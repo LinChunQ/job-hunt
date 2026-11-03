@@ -56,6 +56,19 @@ AI 分析由 WorkBuddy 提供，本服务不内置大模型，也不会在 WorkB
 
 ## 快速开始
 
+### 发给 WorkBuddy，一次完成安装引导
+
+推荐把下面整段发给 WorkBuddy，而不只发送链接：
+
+```text
+请安装并初始化这个求职 skill：https://github.com/LinChunQ/job-hunt
+阅读 README.md 和 SKILL.md，把完整包安装到 WorkBuddy 的 skills 目录，不覆盖已有安装。自动检测环境、启动本地服务，提示我加载插件和配对，再提醒我上传简历、确认求职条件。先不要搜索岗位、启用定时任务或发送消息。
+```
+
+WorkBuddy 需具备下载项目与执行本机脚本的能力。仅粘贴网址是否触发安装取决于宿主版本；仓库不能强制宿主执行安装。安装流程为：**获取完整包 → 核实 skill 目录 → 安装 → 自动准备环境 → 连接插件 → 简历和偏好引导**。不要求用户手动装 Git、Node、Python 或运行命令。若宿主不支持链接安装，使用它的技能导入入口导入完整文件夹。
+
+包内已提供 `install --skills-dir DIR`、`setup` 和 `onboarding`：安装器拒绝覆盖已有目录，初始化可反复执行并返回缺少的配置，不会自行搜索或创建计划。简历通过 WorkBuddy 附件提供，确认后仅把岗位相关事实与偏好存入本机包外 SQLite；无需姓名、电话、邮箱等联系信息，也可先跳过。附件处理适用 WorkBuddy 自身的数据规则。完整流程见 [安装与首次引导](references/installation.md)。
+
 ### 1. 准备环境
 
 - **Windows 无需预先手动安装 Node.js。** WorkBuddy 调用原生入口，优先复用它自带或系统已有的兼容运行时；缺少环境时自动下载、校验便携版。没有第三方 npm 运行依赖。
@@ -74,8 +87,7 @@ AI 分析由 WorkBuddy 提供，本服务不内置大模型，也不会在 WorkB
 WorkBuddy 在包根目录运行下列 Windows 命令，**用户不必自己执行**。首个命令自动检测环境，缺失时准备运行时：
 
 ```sh
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 doctor
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service start
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 setup
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 pair
 ```
 
@@ -118,6 +130,8 @@ WorkBuddy 需要先确认用户资料与搜索条件。当前搜索参数为关�
 
 | 命令 | 用途 |
 | --- | --- |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 setup` | 启动服务并列出首次配置缺项 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 onboarding` | 复查连接、简历事实与求职条件（不输出资料正文） |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 doctor` | 环境和本机服务检查 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service start` | 启动本地服务 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 status` | 连接、暂停、冷却和当前任务状态 |
