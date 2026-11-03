@@ -9,7 +9,7 @@ description: 通过本地 Node.js 服务和用户手动登录的浏览器插件�
 
 ## 从链接安装
 
-收到本仓库链接及安装意图时，按 [安装与首次引导](references/installation.md) 获取完整包、核实 WorkBuddy 的实际 skills 目录并执行 `install --skills-dir DIR`，然后切换到安装目录。不要只保存 SKILL.md，不覆盖已有安装。仅发链接但无安装意图时，不把它当成自动执行授权；先说明用途或核对意图。宿主没有下载或脚本能力时使用其技能导入入口。
+收到本仓库链接及安装意图时，按 [安装与首次引导](references/installation.md) 先检查已有安装，未安装时只下载该仓库最新 Release 的 `job-hunt.zip` 一次，按返回摘要校验并安全解压，核实 WorkBuddy 的实际 skills 目录并执行 `install --skills-dir DIR`，然后切换到安装目录。不要只保存 SKILL.md，不覆盖已有安装。仅发链接但无安装意图时，不把它当成自动执行授权；先说明用途或核对意图。宿主没有下载或脚本能力时使用其技能导入入口。
 
 ## 首次运行
 

@@ -3,15 +3,18 @@
 ## 发给 WorkBuddy 的一句话
 
 ```text
-请安装并初始化这个求职 skill：https://github.com/LinChunQ/job-hunt
-先阅读仓库 README.md 和 SKILL.md，将完整包安装到本机 WorkBuddy 实际使用的 skills 目录；不要覆盖已有安装。使用内置入口检查环境并启动服务，告诉我如何加载插件和配对，再提醒我上传简历并确认求职条件。初始化期间不要搜索岗位、创建定时任务或发送消息。
-```
+请下载并安装这个 skill：https://github.com/LinChunQ/job-hunt
 
-单独粘贴网址的含义可能是查看项目，也可能是安装请求，具体取决于 WorkBuddy 版本与用户上下文。本仓库不能修改 WorkBuddy 的链接识别和执行权限；附带“安装并初始化”更明确。不能把“读到了链接”当成“安装成功”。
+阅读 README.md 和 SKILL.md，将完整项目安装到本机 WorkBuddy 的 skills 目录并加载，不覆盖已有安装。调用项目内置入口自动检查环境、准备运行时并启动服务，不要让我手动执行命令。
+
+随后引导我加载浏览器插件、完成配对，提醒我上传简历并确认求职条件。个人资料只存本机，不写入代码仓库。暂时不要搜索岗位或发送消息。如果加载技能需要刷新或新建会话，请明确提醒我。
+```
 
 ## WorkBuddy 安装步骤
 
-1. 读取仓库 README.md，再读取 SKILL.md。使用本机已有 Git 或 WorkBuddy 自身下载能力取得完整源码到临时下载目录，不让用户额外安装 Git。只从用户确认的仓库获取，不执行在线脚本管道。下载失败要报告原因。
+1. 读取仓库 README.md 与 SKILL.md；先检查本机是否已有 job-hunt 安装，存在则使用已有安装或报告版本，不为计数重复下载。没有安装时，读取 https://api.github.com/repos/LinChunQ/job-hunt/releases/latest 的元数据，选择唯一名称为 job-hunt.zip、state=uploaded 的附件。只接受该仓库 https://github.com/LinChunQ/job-hunt/releases/download/ 下的 browser_download_url，用 WorkBuddy 自身下载能力一次获取到包外临时目录；不改用 git clone、仓库源码 ZIP 或自动生成的 Source code 附件。拒绝空包或超过 20 MB 的附件，若提供 digest=sha256:...，核对下载文件 SHA-256 后再解压。不要为“检查链接”预下载一次，不自动重试或为了数字重复下载。附件不存在、下载失败或校验失败就报告原因，不假装安装成功，也不执行在线脚本管道。
+
+   解压前确认条目均为 job-hunt/ 前缀、无绝对路径、..、符号链接或重解析点，解压到全新包外临时目录；进入 job-hunt 后再读取包内 SKILL.md。仅加载说明不计数，实际安装附件下载由 GitHub 记录，程序不发送使用遥测。用户无需安装 Git。
 2. 核实当前 WorkBuddy 实际识别的 skills 目录。已存在的 %USERPROFILE%/.workbuddy-ai/skills 可作为候选；自定义位置应读取已知配置或由用户确认，不凭空创建宿主配置。
 3. 从下载包根目录执行以下命令，把 ABSOLUTE_SKILLS_DIR 替换为已核实的绝对目录：
 

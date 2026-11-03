@@ -9,7 +9,7 @@ const release={name:'job-hunt',version:'0.1.0',channel:'preview',githubRepositor
 test('unconfigured hero shows honest placeholders, correct runtime and no foreign repository',()=>{
   const html=renderHero(release);
   assert.match(html,/<h1 align="center">job-hunt v0\.1\.0<\/h1>/);
-  assert.equal((html.match(/<img /g) || []).length,9);
+  assert.equal((html.match(/<img /g) || []).length,8);
   assert.match(html,/message=v0\.1\.0-preview/);
   assert.match(html,/not\+published/);
   assert.match(html,/SQLite/);
@@ -25,7 +25,7 @@ test('configured hero derives every repository badge and link from one public id
   assert.ok(html.includes('/github/actions/workflow/status/example/job-hunt/ci.yml?branch=main&amp;label=checks'));
   assert.ok(html.includes('https://github.com/example/job-hunt/actions/workflows/ci.yml'));
   assert.ok(html.includes('https://img.shields.io/github/downloads/example/job-hunt/total?style=flat&amp;label=release%20downloads'));
-  assert.ok(html.includes('label=users&amp;message=not+tracked'));
+  assert.equal(html.includes('label=users'),false);
   assert.equal(html.includes('not+published'),false);
 });
 

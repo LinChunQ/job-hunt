@@ -1,0 +1,31 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+      - run: npm run check
+      - run: npm run release:check
+      - name: Validate tag and build public package
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const release=JSON.parse(fs.readFileSync("release.json","utf8")); if(process.env.RELEASE_TAG!=="v"+release.version) process.exit(1);'
+          node scripts/build-release.mjs --output-dir "$RUNNER_TEMP/job-hunt-release"
+      - name: Publish installation asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" "$RUNNER_TEMP/job-hunt-release/job-hunt.zip" --verify-tag --title "job-hunt $RELEASE_TAG" --notes "完整 skill、Node.js 本地服务与浏览器插件。用户资料不包含在安装包中。当前仍为功能预览，消息由用户手动发送。"

@@ -1,13 +1,12 @@
 <!-- job-hunt:hero:start -->
-<h1 align="center">job-hunt v0.1.0</h1>
+<h1 align="center">job-hunt v0.1.1</h1>
 
 <p align="center">本地求职助手：岗位采集、AI 匹配评分、个性化打招呼草稿与人工审阅。</p>
 
 <p align="center">
   <a href="https://github.com/LinChunQ/job-hunt/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/LinChunQ/job-hunt?style=flat&amp;logo=github"></a>
   <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="Release 附件累计下载次数" src="https://img.shields.io/github/downloads/LinChunQ/job-hunt/total?style=flat&amp;label=release%20downloads"></a>
-  <a href="#下载与使用统计"><img alt="实际使用人数未统计" src="https://img.shields.io/static/v1?label=users&amp;message=not+tracked&amp;color=lightgrey&amp;style=flat"></a>
-  <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.1.0-preview&amp;color=orange&amp;style=flat"></a>
+  <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.1.1-preview&amp;color=orange&amp;style=flat"></a>
   <img alt="Node.js 22.20+ 的 22.x 或 24+" src="https://img.shields.io/static/v1?label=Node.js&amp;message=22.20%2B+%2822.x%29+%7C+24%2B&amp;color=339933&amp;style=flat&amp;logo=nodedotjs">
   <img alt="SQLite 本地存储" src="https://img.shields.io/static/v1?label=storage&amp;message=SQLite&amp;color=003B57&amp;style=flat&amp;logo=sqlite">
   <a href="https://github.com/LinChunQ/job-hunt/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/LinChunQ/job-hunt?style=flat"></a>
@@ -58,18 +57,17 @@ AI 分析由 WorkBuddy 提供，本服务不内置大模型，也不会在 WorkB
 
 ## 快速开始
 
-### 发给 WorkBuddy，一次完成安装引导
-
-推荐把下面整段发给 WorkBuddy，而不只发送链接：
+### 复制到 WorkBuddy 即可安装
 
 ```text
-请安装并初始化这个求职 skill：https://github.com/LinChunQ/job-hunt
-阅读 README.md 和 SKILL.md，把完整包安装到 WorkBuddy 的 skills 目录，不覆盖已有安装。自动检测环境、启动本地服务，提示我加载插件和配对，再提醒我上传简历、确认求职条件。先不要搜索岗位、启用定时任务或发送消息。
+请下载并安装这个 skill：https://github.com/LinChunQ/job-hunt
+
+阅读 README.md 和 SKILL.md，将完整项目安装到本机 WorkBuddy 的 skills 目录并加载，不覆盖已有安装。调用项目内置入口自动检查环境、准备运行时并启动服务，不要让我手动执行命令。
+
+随后引导我加载浏览器插件、完成配对，提醒我上传简历并确认求职条件。个人资料只存本机，不写入代码仓库。暂时不要搜索岗位或发送消息。如果加载技能需要刷新或新建会话，请明确提醒我。
 ```
 
-WorkBuddy 需具备下载项目与执行本机脚本的能力。仅粘贴网址是否触发安装取决于宿主版本；仓库不能强制宿主执行安装。安装流程为：**获取完整包 → 核实 skill 目录 → 安装 → 自动准备环境 → 连接插件 → 简历和偏好引导**。不要求用户手动装 Git、Node、Python 或运行命令。若宿主不支持链接安装，使用它的技能导入入口导入完整文件夹。
-
-包内已提供 `install --skills-dir DIR`、`setup` 和 `onboarding`：安装器拒绝覆盖已有目录，初始化可反复执行并返回缺少的配置，不会自行搜索或创建计划。简历通过 WorkBuddy 附件提供，确认后仅把岗位相关事实与偏好存入本机包外 SQLite；无需姓名、电话、邮箱等联系信息，也可先跳过。附件处理适用 WorkBuddy 自身的数据规则。完整流程见 [安装与首次引导](references/installation.md)。
+WorkBuddy 安装入口：[下载完整安装包](https://github.com/LinChunQ/job-hunt/releases/latest/download/job-hunt.zip)，按 [安装与首次引导](references/installation.md) 完成初始化。
 
 ### 1. 准备环境
 
@@ -193,17 +191,6 @@ Node.js 服务是独立本地进程，已经保存的计划可在服务运行、
 目前不能。消息由用户手动发送；更新只检测配置仓库的正式 Release，不自动下载安装；猎聘与前程无忧尚未实现。
 
 </details>
-
-## 下载与使用统计
-
-顶部 **Release downloads** 显示 GitHub 所有 Release 附件的累计下载次数，不是安装人数或活跃用户数。统计由 GitHub 和 Shields.io 提供，徽章可能因缓存延迟更新。
-
-- 用户在 WorkBuddy 粘贴提示词、浏览仓库、git clone 或下载仓库源码，不会因此让这个 Release 附件计数增加。
-- 只有下载了维护者上传到 Release 的附件才进入该统计；重复下载以及下载多个附件也可能多次累计。GitHub 自动生成的 Source code (zip/tar.gz) 不属于上传附件的统计口径。
-- 若希望通过安装提示词产生可统计的下载，应先发布完整的安装 ZIP 附件，再让安装流程下载该附件。目前提示词使用源码获取流程，没有承诺每次安装都会增加此计数。
-- **Users: not tracked** 表示实际使用人数尚未统计，不代表零用户。本项目没有用户上报、设备标识或访问追踪；下载次数、Stars 和页面访问量都不能当作真实使用人数。
-
-统计接口说明：[GitHub Release assets](https://docs.github.com/en/rest/releases/assets)、[Shields.io 下载徽章](https://shields.io/badges/git-hub-downloads-all-assets-all-releases)。不要为增加数字而反复下载自己的发布包。
 
 ## GitHub 托管与徽章配置
 

@@ -20,7 +20,7 @@
 1. 自行创建 GitHub 仓库并绑定远端；此包不预设账号，不自动 push。
 2. 运行 `npm run github:configure -- --repository owner/repository`，同步更新来源和 README 动态徽章；不设置远端、不推送。package、release、extension 三处版本保持一致，调整版本后运行 `npm run docs:sync`。
 3. 运行 `npm run check`、`npm run release:check`，审查历史；维护者选择许可证后再分发。
-4. 用 `v主版本.次版本.修订号` 的正式 Release 标签。只从检查通过的提交构建，不压缩整个工作目录；GitHub 自动源码归档来自该提交。
+4. 用 `v主版本.次版本.修订号` 标签指向检查通过的提交。推送标签后，release 工作流校验版本、隐私与测试，使用 `scripts/build-release.mjs` 按受审计 Git 白名单生成 `job-hunt.zip` 并上传 Release；不压缩整个工作目录，也不包含 Git 历史和用户数据。安装入口使用该附件。
 5. `update check` 只查询配置仓库的最新正式 Release，不上传本机数据。未配置时不联网。
 
 当前不下载、执行或自动安装远程代码。`automaticUpdateEnabled` 关闭，`updatePublicKey` 留空；签名清单、哈希校验、原子安装、数据库备份迁移和回滚尚未实现。手动加载的扩展更新后仍需用户在扩展管理页重载。

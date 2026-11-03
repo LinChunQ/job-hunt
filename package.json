@@ -1,6 +1,6 @@
 {
   "name": "job-hunt",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "本地求职 skill、Node.js 服务与普通浏览器插件",
