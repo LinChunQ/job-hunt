@@ -5,14 +5,16 @@ description: 通过本地 Node.js 服务和用户手动登录的浏览器插件�
 
 # job-hunt
 
-把本文件所在目录视为包根目录，命令都从该目录执行；不可写死开发者电脑路径。需要 Node.js 22.20+ 的 22.x 或 24+，不需要 Python、Fiddler 或远程 MCP。
+把本文件所在目录视为包根目录，命令都从该目录执行；不可写死开发者电脑路径。Windows 由原生入口自动寻找或准备兼容 Node.js，无需用户预先安装 Node.js、Python、Fiddler 或远程 MCP。
 
 ## 首次运行
 
-1. 运行 `node scripts/job-hunt.mjs doctor`，核对环境与本机服务。
-2. 运行 `node scripts/job-hunt.mjs service start`。
-3. 由你运行 `node scripts/job-hunt.mjs pair`，把本次配对码只展示给当前用户。请用户一次性手动加载包内 `extension`，正常登录 BOSS，在侧栏粘贴配对码并连接。不要要求用户自己执行命令，不要把配对码写进文件、总结或提交。
-4. 运行 `node scripts/job-hunt.mjs status`。插件已连接且未暂停才能安排站点任务。诊断成功不代表已验证网站登录。
+1. 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 doctor`，核对环境与本机服务。入口依次复用 WorkBuddy 自带、系统已有和项目缓存的兼容 Node；均不可用时从固定官方来源下载并校验便携版本，无需管理员权限或改系统 PATH。不要临时编写其他安装命令。
+2. 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service start`。
+3. 由你运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 pair`，把本次配对码只展示给当前用户。请用户一次性手动加载包内 `extension`，正常登录 BOSS，在侧栏粘贴配对码并连接。不要要求用户自己执行命令，不要把配对码写进文件、总结或提交。
+4. 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 status`。插件已连接且未暂停才能安排站点任务。诊断成功不代表已验证网站登录。
+
+Windows 后续所有命令均使用同一原生入口。引导参数 `--runtime-info` 查看运行时来源，`--no-runtime-download` 禁止下载，均须放在业务命令前。下载或校验失败就报告错误码，不更换未验证镜像或降低校验。见 [运行环境](references/runtime-bootstrap.md)。非 Windows 暂无自动安装入口，可在已有兼容 Node 下运行 `node scripts/job-hunt.mjs`。
 
 不得启动自动化浏览器、开发者工具、CDP、WebDriver 或 Fiddler；不得读取 Cookie、伪造网站校验参数或接管未授权标签页。遇到验证、异常、暂停或结果不确定，停止站点任务，由用户在网站处理后恢复；不承诺任何请求间隔能避免风控。
 

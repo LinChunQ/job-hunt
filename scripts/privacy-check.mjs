@@ -21,7 +21,9 @@ export function inspectFile(name,content) {
   // 匹配实际字面量，允许程序正常处理名为 key/token/cookie 的变量。
   if (/\b(?:authorization|cookie|password|api[_-]?key|access[_-]?token|zp_token|zp_at|wt2|__zp_stoken__)\b['"]?\s*[:=]\s*['"][^'"\r\n]{16,}['"]/i.test(content)) issues.push('HARDCODED_CREDENTIAL');
   if (/(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9_-]{30,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{15,})/.test(content)) issues.push('TOKEN_LITERAL');
-  if (/['"][a-f0-9]{64}['"]/i.test(content)) issues.push('PAIRING_OR_SECRET_LITERAL');
+  // 固定运行时模块的架构摘要是公开 SHA-256；同文件其他字段仍按密钥检查。
+  const secretText=normalized==='scripts/runtime-bootstrap.psm1' ? content.replace(/^ {8}(?:x64|arm64) = '[a-f0-9]{64}'\r?$/gm,'') : content;
+  if (/['"][a-f0-9]{64}['"]/i.test(secretText)) issues.push('PAIRING_OR_SECRET_LITERAL');
   if (/securityId=[A-Za-z0-9_%~-]{16,}/.test(content)) issues.push('CAPTURED_SITE_REQUEST');
   return [...new Set(issues)];
 }

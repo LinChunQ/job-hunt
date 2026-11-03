@@ -1,6 +1,6 @@
 # 命令与输入
 
-从包根目录运行 `node scripts/job-hunt.mjs <命令>`。输出 JSON；错误用 `errorCode` 表达。输入文件必须位于包外，UTF-8 JSON，最大 1 MB。示例只演示结构，不会自动执行。
+Windows 从包根目录运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 <命令>`，无需预先安装 Node；引导不改系统 PATH。其他系统有兼容 Node 时可用 `node scripts/job-hunt.mjs <命令>`。见 [运行环境](runtime-bootstrap.md)。输出 JSON；错误用 `errorCode` 表达。输入文件必须位于包外，UTF-8 JSON，最大 1 MB。示例只演示结构，不会自动执行。
 
 | 命令 | 作用 |
 | --- | --- |

@@ -26,3 +26,12 @@ test('staged and historical audits inspect Git blobs rather than only current fi
     assert.equal(scanRepository(dir,{staged:true}).ok,true);assert.equal(scanRepository(dir,{history:true}).ok,false);
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+// 公开发行摘要与认证密钥同为 64 位，例外仅限运行时文件的架构字段。
+test('runtime checksum exception never suppresses other secrets',()=>{
+  const digest=randomBytes(32).toString('hex');
+  const declaration="        x64 = '"+digest+"'";
+  assert.deepEqual(inspectFile('scripts/runtime-bootstrap.psm1',declaration),[]);
+  assert.ok(inspectFile('scripts/other.psm1',declaration).includes('PAIRING_OR_SECRET_LITERAL'));
+  assert.ok(inspectFile('scripts/runtime-bootstrap.psm1',declaration+"\nkey='"+digest+"'").includes('PAIRING_OR_SECRET_LITERAL'));
+});

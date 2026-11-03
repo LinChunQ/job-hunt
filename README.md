@@ -58,7 +58,8 @@ AI 分析由 WorkBuddy 提供，本服务不内置大模型，也不会在 WorkB
 
 ### 1. 准备环境
 
-- Node.js **22.20+ 的 22.x** 或 **24+**，目前没有第三方 npm 运行依赖。
+- **Windows 无需预先手动安装 Node.js。** WorkBuddy 调用原生入口，优先复用它自带或系统已有的兼容运行时；缺少环境时自动下载、校验便携版。没有第三方 npm 运行依赖。
+- 自动引导支持 Windows x64 / ARM64，使用系统自带 PowerShell 5.1+。其他系统仍需已有兼容 Node.js（22.20+ 的 22.x 或 24+），暂未提供自动安装入口。
 - 支持侧栏的桌面版 Edge / Chrome。
 - 能执行本机脚本的 WorkBuddy，以及你正常登录的 BOSS 账号。
 
@@ -70,15 +71,17 @@ AI 分析由 WorkBuddy 提供，本服务不内置大模型，也不会在 WorkB
 
 > 使用 job-hunt，先检查本机环境并启动服务，把插件配对码展示给我。暂时不要搜索岗位。
 
-WorkBuddy 在包根目录运行下列命令，**用户不必自己执行**：
+WorkBuddy 在包根目录运行下列 Windows 命令，**用户不必自己执行**。首个命令自动检测环境，缺失时准备运行时：
 
 ```sh
-node scripts/job-hunt.mjs doctor
-node scripts/job-hunt.mjs service start
-node scripts/job-hunt.mjs pair
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 doctor
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service start
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 pair
 ```
 
 配对码仅用于当前电脑，不要发到 Issues、截图、仓库或公开日志中。
+
+找到兼容环境时不下载。需要下载时，使用固定的 Node.js 官方版本，校验 SHA-256 后只保留 `node.exe` 和许可证，存到 `%LOCALAPPDATA%/job-hunt/runtime`；不需要管理员权限、不修改系统 PATH、不替换 WorkBuddy 文件。`-ExecutionPolicy Bypass` 仅作用于当前 PowerShell 进程，不改系统策略。离线和故障排查见 [运行环境](references/runtime-bootstrap.md)。
 
 ### 3. 一次加载插件并连接
 
@@ -105,25 +108,25 @@ WorkBuddy 需要先确认用户资料与搜索条件。当前搜索参数为关�
 
 ### 5. 查看结果并处理草稿
 
-让 WorkBuddy 运行 `node scripts/job-hunt.mjs ui`，获取本地页面地址；手动打开并输入配对码，可查看岗位、职责和编辑草稿。
+让 WorkBuddy 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 ui`，获取本地页面地址；手动打开并输入配对码，可查看岗位、职责和编辑草稿。
 
 需要填入聊天时，手动打开对应聊天，在插件中选择草稿并标记公司、岗位、招聘人和输入框。四项有效后核对对象，确认并填入正文，最后在网页手动发送。插件中的“已发送”记录来自用户确认，不代表平台送达证明。
 
 ## 常用命令
 
-以下命令由 WorkBuddy 在项目根目录执行：
+以下为 Windows 命令，由 WorkBuddy 在项目根目录执行，无须用户手动输入；非 Windows 使用已有兼容 Node 运行原 CLI。
 
 | 命令 | 用途 |
 | --- | --- |
-| `node scripts/job-hunt.mjs doctor` | 环境和本机服务检查 |
-| `node scripts/job-hunt.mjs service start` | 启动本地服务 |
-| `node scripts/job-hunt.mjs status` | 连接、暂停、冷却和当前任务状态 |
-| `node scripts/job-hunt.mjs jobs` | 查看已保存岗位 |
-| `node scripts/job-hunt.mjs pending` | 查看待补详情/待审阅岗位 |
-| `node scripts/job-hunt.mjs schedule list` | 查看采集计划 |
-| `node scripts/job-hunt.mjs ui` | 获取本地工作台地址 |
-| `node scripts/job-hunt.mjs update check` | 检测 GitHub 正式 Release 版本 |
-| `node scripts/job-hunt.mjs service stop` | 停止服务 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 doctor` | 环境和本机服务检查 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service start` | 启动本地服务 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 status` | 连接、暂停、冷却和当前任务状态 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 jobs` | 查看已保存岗位 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 pending` | 查看待补详情/待审阅岗位 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 schedule list` | 查看采集计划 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 ui` | 获取本地工作台地址 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 update check` | 检测 GitHub 正式 Release 版本 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service stop` | 停止服务 |
 
 搜索、资料保存、审阅导入和计划配置使用包外 JSON 文件。完整结构见 [命令与输入](references/commands.md)，话术约束见 [审阅规则](references/greeting-rules.md)。
 
@@ -137,6 +140,7 @@ WorkBuddy 需要先确认用户资料与搜索条件。当前搜索参数为关�
 | `bridge.json` | 本机配对密钥 | 否 |
 | `service.log` | 服务启动与状态信息 | 否 |
 | 包外输入文件 | 用户资料、任务和审阅结果 | 否 |
+| `runtime/` | 项目专用便携程序和许可证（仅环境缺失时下载） | 否 |
 
 公开版使用通用提示词和虚构示例，不包含真实简历、个人求职配置、抓包、认证令牌或个人项目成绩。SQLite 不提供静态加密，请保护电脑账户和目录权限。
 
@@ -202,7 +206,7 @@ npm run check
 npm run release:check
 ```
 
-测试只使用虚构数据、包外临时 SQLite 和本机回环服务，不打开自动化浏览器，不访问招聘网站。项目不需要先运行 `npm install`。徽章与配置一致性已纳入检查，GitHub Actions 工作流位于 `.github/workflows/ci.yml`。
+测试只使用虚构数据、包外临时 SQLite 和本机回环服务，不打开自动化浏览器，不访问招聘网站。项目不需要先运行 `npm install`，也不要求普通用户手动安装 Node。开发检查仍用已有 Node/npm；便携运行时不额外安装 npm。徽章与配置一致性已纳入检查，GitHub Actions 工作流位于 `.github/workflows/ci.yml`。
 
 ```text
 job-hunt/
