@@ -4,13 +4,13 @@
 <p align="center">本地求职助手：岗位采集、AI 匹配评分、个性化打招呼草稿与人工审阅。</p>
 
 <p align="center">
-  <img alt="GitHub Stars" src="https://img.shields.io/static/v1?label=Stars&amp;message=not+published&amp;color=lightgrey&amp;style=flat&amp;logo=github">
-  <img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.1.0-preview&amp;color=orange&amp;style=flat">
+  <a href="https://github.com/LinChunQ/job-hunt/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/LinChunQ/job-hunt?style=flat&amp;logo=github"></a>
+  <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.1.0-preview&amp;color=orange&amp;style=flat"></a>
   <img alt="Node.js 22.20+ 的 22.x 或 24+" src="https://img.shields.io/static/v1?label=Node.js&amp;message=22.20%2B+%2822.x%29+%7C+24%2B&amp;color=339933&amp;style=flat&amp;logo=nodedotjs">
   <img alt="SQLite 本地存储" src="https://img.shields.io/static/v1?label=storage&amp;message=SQLite&amp;color=003B57&amp;style=flat&amp;logo=sqlite">
-  <img alt="GitHub Issues" src="https://img.shields.io/static/v1?label=issues&amp;message=not+published&amp;color=lightgrey&amp;style=flat">
-  <img alt="最近提交" src="https://img.shields.io/static/v1?label=last+commit&amp;message=local+only&amp;color=lightgrey&amp;style=flat">
-  <img alt="自动化检查" src="https://img.shields.io/static/v1?label=checks&amp;message=local+only&amp;color=lightgrey&amp;style=flat">
+  <a href="https://github.com/LinChunQ/job-hunt/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/LinChunQ/job-hunt?style=flat"></a>
+  <a href="https://github.com/LinChunQ/job-hunt/commits"><img alt="最近提交" src="https://img.shields.io/github/last-commit/LinChunQ/job-hunt?style=flat"></a>
+  <a href="https://github.com/LinChunQ/job-hunt/actions/workflows/ci.yml"><img alt="自动化检查" src="https://img.shields.io/github/actions/workflow/status/LinChunQ/job-hunt/ci.yml?branch=main&amp;label=checks"></a>
 </p>
 
 <p align="center"><a href="#快速开始">快速开始</a> · <a href="#功能与状态">功能与状态</a> · <a href="references/commands.md">命令文档</a> · <a href="#隐私与数据">隐私与数据</a></p>

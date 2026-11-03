@@ -4,7 +4,7 @@
   "channel": "preview",
   "protocolVersion": 2,
   "storageSchemaVersion": 1,
-  "githubRepository": null,
+  "githubRepository": "LinChunQ/job-hunt",
   "updatePublicKey": null,
   "automaticUpdateEnabled": false
 }
