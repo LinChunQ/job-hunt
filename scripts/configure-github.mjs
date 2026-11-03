@@ -18,6 +18,8 @@ export function renderHero(release) {
   // 未托管时使用明确的静态状态，不引用其他项目，也不展示虚构的 Stars 或 Issue 数字。
   const rows=[
     image(repository ? 'https://img.shields.io/github/stars/'+repository+'?style=flat&logo=github' : badge('Stars','not published','lightgrey','github'),'GitHub Stars',url && url+'/stargazers'),
+    image(repository ? 'https://img.shields.io/github/downloads/'+repository+'/total?style=flat&label=release%20downloads' : badge('release downloads','not published','lightgrey'),'Release 附件累计下载次数',url && url+'/releases'),
+    image(badge('users','not tracked','lightgrey'),'实际使用人数未统计','#下载与使用统计'),
     image(badge('version','v'+release.version+(release.channel==='preview' ? '-preview' : ''),'orange'),'当前源码版本',url && url+'/releases'),
     image(badge('Node.js','22.20+ (22.x) | 24+','339933','nodedotjs'),'Node.js 22.20+ 的 22.x 或 24+'),
     image(badge('storage','SQLite','003B57','sqlite'),'SQLite 本地存储'),
