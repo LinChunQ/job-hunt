@@ -1,6 +1,64 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>job-hunt 本地工作台</title><link rel="stylesheet" href="/app.css"></head>
-<body><header><h1>job-hunt</h1><p>本地查看与审阅 · 不自动发送消息</p></header>
-<main><form id="connect"><label for="key">本机配对码</label><input id="key" type="password" autocomplete="off" required minlength="64" maxlength="64"><button>查看本机数据</button></form>
-<p id="status" role="status">请从 WorkBuddy 获取本机配对码。关闭页面后需要重新输入。</p><section><h2>岗位清单</h2><div id="jobs"></div></section>
-<section><h2>已生成的问候语</h2><p>可在此查看和编辑草稿；填入聊天由浏览器侧栏和用户操作。</p><div id="drafts"></div></section></main><script type="module" src="/app.js"></script></body></html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>job-hunt · 求职工作台</title><link rel="stylesheet" href="app.css"></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="#overview"><span class="brand-icon">j.</span><span>job-hunt<small>本机求职工作台</small></span></a>
+  <nav aria-label="工作台导航">
+    <button class="nav active" data-view="overview">概览<span>01</span></button>
+    <button class="nav" data-view="preferences">求职配置<span>02</span></button>
+    <button class="nav" data-view="jobs">岗位库<span>03</span></button>
+    <button class="nav" data-view="drafts">话术审阅<span>04</span></button>
+    <button class="nav" data-view="delivery">发送队列<span>05</span></button>
+  </nav>
+  <div class="sidebar-foot"><span class="dot"></span> 数据仅在本机保存<small>WorkBuddy 思考 · 服务调度 · 插件执行</small></div>
+</aside>
+<main>
+  <header class="topbar"><div><p class="eyebrow">YOUR NEXT OPPORTUNITY</p><h1 id="page-title">求职概览</h1></div><div class="top-actions"><span id="connection" class="pill">等待连接</span><button id="refresh" class="secondary" type="button">刷新数据</button><button id="lock" class="secondary" type="button" hidden>锁定</button></div></header>
+  <div id="notice" role="status" aria-live="polite" hidden></div>
+  <section id="login" class="panel login"><span class="tag">本机访问</span><h2>连接你的求职工作台</h2><p>由 WorkBuddy 启动时自动连接。直接打开此地址时，输入同一台电脑的配对码。</p><form id="login-form"><label for="key">本机配对码</label><div class="inline"><input id="key" type="password" autocomplete="off" maxlength="64" required placeholder="粘贴 WorkBuddy 提供的配对码"><button type="submit">连接工作台</button></div></form><p class="muted">密钥只保存在当前页面内存中。请勿将配对码或个人资料发到 GitHub。</p></section>
+  <div id="workspace" hidden>
+  <section id="view-overview" class="view">
+    <div class="welcome"><div><span class="tag">更专注地寻找下一站</span><h2>把机会整理好，再认真开口。</h2><p>在这里管理求职条件、筛选岗位、审阅话术，并跟进每一次沟通。</p><button type="button" data-go="preferences">完善求职配置 →</button></div><div class="welcome-art" aria-hidden="true"><span>你的下一站</span><strong>NEW<br>CHAPTER.</strong><i>每一次沟通，都有准备。</i></div></div>
+    <div id="stats" class="stats"></div>
+    <div class="two-col"><article class="panel"><div class="section-head"><h2>求职方向</h2><button class="text" data-go="preferences">编辑配置 →</button></div><div id="profile-summary"></div></article><article class="panel"><h2>连接与任务</h2><div id="service-summary"></div></article></div>
+    <article class="panel"><div class="section-head"><h2>最近的机会</h2><button class="text" data-go="jobs">查看岗位库 →</button></div><div id="recent-jobs"></div></article>
+  </section>
+  <section id="view-preferences" class="view" hidden>
+    <div class="section-intro"><h2>明确你的理想岗位</h2><p>这里的条件与 WorkBuddy 共用同一个 SQLite 数据源。薪资、经验等用于本地筛选与 AI 审阅。</p></div>
+    <form id="profile-form" class="panel"><div class="form-grid">
+      <label>称呼（可选）<input name="displayName" maxlength="100" placeholder="你希望如何被称呼"></label>
+      <label>目标岗位 / 关键词<input name="keywords" placeholder="例如：AI应用开发、全栈开发"></label>
+      <label>求职地点<input name="cities" placeholder="例如：北京、上海；多个用逗号分隔"></label>
+      <label>工作方式<select name="workMode"><option value="">尚未设定</option><option>不限</option><option>现场</option><option>远程</option><option>混合</option></select></label>
+      <label>期望月薪下限（K，税前）<input name="salaryMin" type="number" min="0" max="1000" step="0.5" placeholder="例如 15"></label>
+      <label>期望月薪上限（K，税前）<input name="salaryMax" type="number" min="0" max="1000" step="0.5" placeholder="例如 25"></label>
+      <label>工作经验<select name="experience"><option value="">尚未设定</option><option>不限</option><option>应届</option><option>1年以内</option><option>1-3年</option><option>3-5年</option><option>5-10年</option><option>10年以上</option></select></label>
+      <label>学历<select name="degree"><option value="">尚未设定</option><option>不限</option><option>大专</option><option>本科</option><option>硕士</option><option>博士</option></select></label>
+      <label class="full">已确认的简历事实（每行一条）<textarea name="facts" rows="6" placeholder="请先在 WorkBuddy 上传简历并确认事实摘要；也可在此填写技能与项目事实，不需要手机号或邮箱。"></textarea></label>
+      <label class="full">其他要求<textarea name="notes" rows="3" maxlength="2000" placeholder="行业、通勤、岗位偏好，以及需要避开的条件"></textarea></label>
+    </div><div class="form-footer"><span id="profile-save-state" class="muted">尚未修改</span><button type="submit">保存求职配置</button></div></form>
+    <p class="muted">上传与解析简历由 WorkBuddy 完成。本页面不上传附件到外部服务；保存条件不会自动开始搜索、创建计划或发送消息。</p>
+  </section>
+  <section id="view-jobs" class="view" hidden>
+    <div class="section-intro"><h2>值得投入时间的机会</h2><p>采集与去重后的岗位集中在这里；AI 评分和话术由 WorkBuddy 生成。</p></div>
+    <div class="toolbar panel"><label class="search-label">搜索岗位 / 公司<input id="job-search" type="search" placeholder="输入岗位、公司或关键词"></label><label>城市<select id="job-city"><option value="">全部城市</option></select></label><label>处理状态<select id="job-filter"><option value="">全部岗位</option><option value="detail">待补详情</option><option value="review">待 AI 审阅</option><option value="draft">已有话术</option></select></label><span id="job-count" class="muted"></span></div>
+    <div class="panel table-panel"><table><thead><tr><th>岗位 / 公司</th><th>薪资 / 地点</th><th>经验 / 学历</th><th>匹配度</th><th>进度</th><th></th></tr></thead><tbody id="job-rows"></tbody></table><div id="jobs-empty" class="empty" hidden>还没有匹配的岗位。先向 WorkBuddy 描述条件并授权搜索。</div></div>
+  </section>
+  <section id="view-drafts" class="view" hidden>
+    <div class="section-intro"><h2>每一段开场白，都由你把关</h2><p>编辑后先保存，再选择要发送的草稿。队列逐条执行，聊天身份或结果不确定时暂停。</p></div>
+    <div class="toolbar panel"><label class="checkbox"><input id="select-all" type="checkbox"> 选择全部可发送草稿</label><label>显示<select id="draft-filter"><option value="">全部话术</option><option value="draft">待审阅</option><option value="queued">队列中</option><option value="processed">已处理 / 待核实</option></select></label><span id="selected-count" class="muted">已选 0 条</span><button id="batch-create" type="button" disabled>审阅并批量发送</button></div>
+    <div id="draft-list" class="draft-list"></div>
+  </section>
+  <section id="view-delivery" class="view" hidden>
+    <div class="section-intro"><h2>有记录地完成每一次沟通</h2><p>先在正常登录的 BOSS 聊天页授权。插件自动识别当前聊天或唯一匹配的已有会话，核对身份后逐条执行；无需逐项标记。</p></div>
+    <div class="two-col"><article class="panel"><span class="tag">当前授权聊天</span><h2>自动识别 · 异常排查</h2><p class="muted">正常发送会自动识别公司、岗位、招聘人、输入框与发送按钮。下方标记工具仅用于诊断页面变化，不作为自动识别失败后的强制步骤。</p><p class="callout">默认自动识别，无需逐项点选。打开对应聊天并连接插件后，在工作台确认本批正文即可。</p><button id="auto-inspect" type="button" class="secondary">检查自动识别</button><p id="browser-state" class="muted" role="status">等待插件连接</p><details class="diagnostic-tools"><summary>页面适配诊断（可选）</summary><div id="mark-buttons" class="mark-grid"></div><div class="inline"><button id="mark-status" type="button" class="secondary">读取标记状态</button><button id="mark-reset" type="button" class="secondary">清除标记</button></div></details></article><article class="panel"><h2>发送前请确认</h2><ol class="steps"><li>在话术页保存并选择要发出的正文。</li><li>批量确认列表中的公司、岗位、招聘人和正文。</li><li>插件自动识别当前聊天；也可选择唯一匹配的已有会话。</li><li>无法精确匹配时暂停。打开正确聊天后，点击“核对并继续”。</li></ol><p class="callout">“页面已出现”表示观察到输入框清空及新增同文消息，不代表平台确认送达。结果不确定的条目不会自动重发。暂停或取消仅阻止后续动作，已派发动作仍可能完成。</p></article></div>
+    <div id="batch-list"></div>
+  </section>
+  </div>
+  <footer class="page-footer">job-hunt · 本机服务与正常登录浏览器连接 <span>AI 内容请审阅后使用</span></footer>
+</main>
+<dialog id="job-dialog"><div class="dialog-head"><h2 id="job-dialog-title">岗位详情</h2><button class="secondary" data-close="job-dialog">关闭</button></div><div id="job-detail"></div></dialog>
+<dialog id="batch-dialog"><div class="dialog-head"><h2>确认本次批量发送</h2><button class="secondary" data-close="batch-dialog">返回编辑</button></div><p>以下正文保存后已锁定版本。确认即授权插件在核对通过的聊天中逐条填入并点击发送。</p><div id="batch-preview"></div><label class="checkbox"><input id="batch-confirm" type="checkbox"> 我已审阅所有选中正文和收件人，确认本批发送</label><p class="muted">无法确认当前聊天或发送结果时暂停；不会自动重发。尚未建立的会话需先在网站打开对应聊天。</p><div class="dialog-actions"><button id="batch-submit" disabled>确认并加入发送队列</button></div></dialog>
+<script type="module" src="app.js"></script>
+</body></html>

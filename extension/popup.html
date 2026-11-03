@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>job-hunt</title><link rel="stylesheet" href="popup.css"></head>
 <body>
-<header><h1>job-hunt</h1><span id="version" class="badge">0.1.1</span></header>
+<header><h1>job-hunt</h1><span id="version" class="badge">0.2.0</span></header>
 <p class="intro">连接你手动登录的 BOSS 标签页，由本机 WorkBuddy 查询岗位列表和职责详情。</p>
 <div class="connection"><span id="phase" class="badge">未连接</span><p id="status" role="status" aria-live="polite">正在读取本机配置…</p></div>
 <form id="connection-form">
@@ -17,36 +17,7 @@
 <div class="actions"><button id="diagnose" type="button">检查连接</button><button id="copy-report" type="button" disabled>复制诊断</button></div>
 <textarea id="report" readonly hidden aria-label="不含配对码的连接诊断"></textarea>
 </details>
-<section id="draft-panel" aria-labelledby="draft-heading">
-<h2 id="draft-heading">打招呼草稿 · 手动发送</h2>
-<p class="note">先由 WorkBuddy 导入已审阅话术。你正常打开对应聊天后，在插件中核对并填入，最后在网页手动发送。</p>
-<button id="draft-refresh" type="button">读取待处理草稿</button>
-<p id="draft-load-status" class="note" role="status" aria-live="polite">正在读取本机草稿…</p>
-<p class="note">这里读取 WorkBuddy 已同步的本机草稿。新增话术请让 WorkBuddy 先导入，再点击重读。</p>
-<label for="draft-select">选择岗位</label><select id="draft-select" aria-label="待处理岗位"></select>
-<p id="draft-target" class="note"></p><p id="draft-state" class="note"></p>
-<label for="draft-text">最终正文（可修改，修改后先保存）</label>
-<textarea id="draft-text" maxlength="500" aria-label="可编辑的打招呼正文"></textarea>
-<p id="draft-length" class="note"></p>
-<div class="actions"><button id="draft-save" type="button">保存修改</button><button id="draft-copy" type="button">复制正文</button><button id="draft-skip" type="button">跳过</button></div>
-<section id="mark-panel" aria-labelledby="mark-heading">
-<h3 id="mark-heading">标记当前聊天</h3>
-<p class="note">侧边栏保持打开。点击一项“标记”，再在网页当前聊天区域点准确的文字或输入框；按 Esc 取消。四项有效后自动核对，仍需你确认后才可填入。</p>
-<div id="mark-progress" role="status" aria-live="polite">正在检查标记状态…</div>
-<div class="mark-row"><button id="mark-company" type="button">标记公司</button><span id="mark-company-status">未标记</span></div>
-<div class="mark-row"><button id="mark-title" type="button">标记岗位</button><span id="mark-title-status">未标记</span></div>
-<div class="mark-row"><button id="mark-recruiter" type="button">标记招聘人</button><span id="mark-recruiter-status">未标记</span></div>
-<div class="mark-row"><button id="mark-editor" type="button">标记输入框</button><span id="mark-editor-status">未标记</span></div>
-<button id="draft-reset" type="button">清除本页标记</button>
-</section>
-<button id="draft-inspect" type="button">核对当前聊天</button>
-<pre id="draft-observed" hidden aria-label="页面核对结果"></pre>
-<label class="check"><input id="draft-confirm" type="checkbox">我已确认当前聊天对象与草稿一致，本次只填入正文</label>
-<button id="draft-fill" type="button" disabled>填入当前聊天（不发送）</button>
-<label class="check"><input id="draft-sent-confirm" type="checkbox">我已在网页手动发送，并在聊天中看到了这条消息</label>
-<button id="draft-report-sent" type="button" disabled>记录：我已在网页发送</button>
-<p id="draft-status" role="status" aria-live="polite">尚未读取草稿。此版本没有自动发送功能。</p>
-</section>
+<section><h2>本机工作台</h2><p class="note">求职配置、岗位、话术编辑与发送队列统一在工作台处理。插件只负责连接与执行当前授权标签页的动作。</p><button id="open-dashboard" type="button">打开工作台</button></section>
 <footer>仅连接当前授权标签页 · 查询结果保存在本机</footer>
-<script src="popup.js"></script><script src="draft-popup.js"></script>
+<script src="popup.js"></script>
 </body></html>

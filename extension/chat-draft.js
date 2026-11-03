@@ -1,4 +1,5 @@
 // 只在用户已打开的聊天页读取其手动标记的元素；不联网、不导航、不点击发送。
+// 自动发送由独立的 chat-send.js 执行；本函数继续只提供诊断标记和旧版填入。
 export async function chatDraftInPage(request) {
   const fail = (errorCode, touched = false) => ({ok:false,errorCode,touched,sent:false});
   if (location.origin !== 'https://www.zhipin.com' || !/^\/web\/geek\/chat(?:\/|$)/.test(location.pathname)) return fail('CHAT_PAGE_REQUIRED');
@@ -23,6 +24,8 @@ export async function chatDraftInPage(request) {
   const readMark = field => {
     const mark=state.marks[field];
     if (!mark || !visible(mark.node) || mark.url!==location.href || Date.now()-mark.at>600000) return null;
+    if (field==='send') return !mark.node.disabled && /^(发送|发送消息|send)$/i.test(norm(mark.node.textContent)) ? mark.node : null;
+    if (field==='receipt') return mark.node;
     if (field==='editor') return editable(mark.node) && !mark.node.disabled && !mark.node.readOnly ? mark.node : null;
     const text=norm(mark.node.textContent);
     return text && text.length<=200 && text===mark.text ? text : null;
@@ -32,7 +35,7 @@ export async function chatDraftInPage(request) {
   if (request?.action==='status') {
     const observed=summarize();
     const marks={};
-    for (const field of ['company','title','recruiter','editor']) {
+    for (const field of ['company','title','recruiter','editor','send','receipt']) {
       const mark=state.marks[field];
       let reason='NOT_MARKED';
       if (mark) {
@@ -60,10 +63,10 @@ export async function chatDraftInPage(request) {
   }
   if (request?.action==='mark') {
     const field=request.field;
-    if (!['company','title','recruiter','editor'].includes(field)) return fail('INVALID_MARK_FIELD');
+    if (!['company','title','recruiter','editor','send','receipt'].includes(field)) return fail('INVALID_MARK_FIELD');
     state.cancelPick?.();state.check=null;state.picking=field;
     const hint=document.createElement('div');
-    hint.textContent='岗位助手：请点击'+({company:'当前聊天的公司名称',title:'当前聊天的岗位名称',recruiter:'当前聊天的招聘人称呼',editor:'消息输入框'}[field])+'；按 Esc 取消。不会点击发送。';
+    hint.textContent='岗位助手：请点击'+({company:'当前聊天的公司名称',title:'当前聊天的岗位名称',recruiter:'当前聊天的招聘人称呼',editor:'消息输入框',send:'发送按钮（此步只标记）',receipt:'当前对话的消息记录区域'}[field])+'；按 Esc 取消。不会点击发送。';
     Object.assign(hint.style,{position:'fixed',top:'12px',left:'12px',right:'12px',zIndex:'2147483647',background:'#143b4b',color:'white',padding:'12px',pointerEvents:'none',fontSize:'15px'});
     document.documentElement.appendChild(hint);
     let timeout;
@@ -78,8 +81,10 @@ export async function chatDraftInPage(request) {
       event.preventDefault();event.stopImmediatePropagation();
       let node=event.composedPath()[0];
       if (field==='editor') node=node.closest?.('textarea,input,[contenteditable="true"]');
-      const text=field==='editor' ? '' : norm(node?.textContent);
-      if (!visible(node) || (field==='editor' ? !editable(node) : !text || text.length>200 || ['BODY','HTML'].includes(node.tagName))) {
+      if (field==='send') node=node.closest?.('button,[role="button"],input[type="submit"]');
+      const control=['editor','send','receipt'].includes(field);
+      const text=control ? '' : norm(node?.textContent);
+      if (!visible(node) || ['BODY','HTML'].includes(node.tagName) || (field==='editor' ? !editable(node) : field==='send' ? !/^(发送|发送消息|send)$/i.test(norm(node.textContent)) : field==='receipt' ? editable(node) : !text || text.length>200)) {
         hint.textContent='无法采用该元素，请点具体文字或真正的消息输入框；Esc 取消。';return;
       }
       // 保留真实 DOM 引用，刷新、切换聊天或节点重建后必须重新标记，避免套用旧选择器。

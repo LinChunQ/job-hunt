@@ -15,8 +15,10 @@ Windows 从包根目录运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass
 | `reviews --input FILE` | 写评分与话术 |
 | `schedule list` / `schedule put --input FILE` | 列出或保存计划 |
 | `resolve --input FILE` | 人工结案不确定动作 |
-| `ui` | 本地查看地址 |
+| `ui` | 在系统默认浏览器打开本机工作台；`--no-open` 只返回地址 |
 | `update check` | 只检测，不安装 |
+
+`setup` 也会自动打开工作台，测试/无界面环境加 `--no-open`。网页操作见 [本机工作台](workbench.md)。
 
 `--state-dir DIR` 指定包外私有目录；`service start --port PORT` 仅用于开发，插件固定连接默认 18674 端口。
 
@@ -39,7 +41,7 @@ Windows 从包根目录运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass
 ## 用户资料
 
 ```json
-{"displayName":"示例候选人","facts":["已确认的项目经历"],"preferences":{"keywords":["示例岗位"],"cities":["示例城市"],"notes":"用户偏好"}}
+{"displayName":"示例候选人","facts":["已确认的项目经历"],"preferences":{"keywords":["示例岗位"],"cities":["示例城市"],"salaryMin":15,"salaryMax":25,"experience":"1-3年","degree":"本科","workMode":"混合","notes":"用户偏好"}}
 ```
 
 只接收白名单文本，不保存 Cookie、密钥或请求头。完整简历如需长期留存，应经授权，仅放本机包外目录。

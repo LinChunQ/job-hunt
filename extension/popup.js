@@ -69,3 +69,8 @@ copyButton.addEventListener('click', async () => {
   try {await navigator.clipboard.writeText(reportBox.value); status.textContent = '已复制不含配对码的诊断报告';}
   catch (_) {reportBox.focus(); reportBox.select(); status.textContent = '请按 Ctrl+C 复制已选中的诊断报告';}
 });
+
+document.getElementById('open-dashboard').addEventListener('click',async()=>{
+  const reply=await chrome.runtime.sendMessage({type:'open-dashboard'});
+  if (!reply?.ok) status.textContent='请确认本机服务已启动';
+});

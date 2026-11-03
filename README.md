@@ -1,12 +1,12 @@
 <!-- job-hunt:hero:start -->
-<h1 align="center">job-hunt v0.1.1</h1>
+<h1 align="center">job-hunt v0.2.0</h1>
 
 <p align="center">本地求职助手：岗位采集、AI 匹配评分、个性化打招呼草稿与人工审阅。</p>
 
 <p align="center">
   <a href="https://github.com/LinChunQ/job-hunt/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/LinChunQ/job-hunt?style=flat&amp;logo=github"></a>
   <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="Release 附件累计下载次数" src="https://img.shields.io/github/downloads/LinChunQ/job-hunt/total?style=flat&amp;label=release%20downloads"></a>
-  <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.1.1-preview&amp;color=orange&amp;style=flat"></a>
+  <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.2.0-preview&amp;color=orange&amp;style=flat"></a>
   <img alt="Node.js 22.20+ 的 22.x 或 24+" src="https://img.shields.io/static/v1?label=Node.js&amp;message=22.20%2B+%2822.x%29+%7C+24%2B&amp;color=339933&amp;style=flat&amp;logo=nodedotjs">
   <img alt="SQLite 本地存储" src="https://img.shields.io/static/v1?label=storage&amp;message=SQLite&amp;color=003B57&amp;style=flat&amp;logo=sqlite">
   <a href="https://github.com/LinChunQ/job-hunt/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/LinChunQ/job-hunt?style=flat"></a>
@@ -17,7 +17,7 @@
 <p align="center"><a href="#快速开始">快速开始</a> · <a href="#功能与状态">功能与状态</a> · <a href="references/commands.md">命令文档</a> · <a href="#隐私与数据">隐私与数据</a></p>
 <!-- job-hunt:hero:end -->
 
-> **开发预览**：当前仅适配 BOSS 直聘。聊天支持用户确认后填入，最终由用户手动发送。托管仓库未配置时，统计徽章显示未发布状态。
+> **开发预览**：当前仅适配 BOSS 直聘。新增本地工作台与经用户审阅确认的逐条发送队列；自动识别适配仍待真实页面验收。托管仓库未配置时，统计徽章显示未发布状态。
 
 把找岗位、整理职责、判断匹配与撰写话术接成一个本地工作流。你向 WorkBuddy 描述求职需求，由它调用 skill 和本机脚本；Node.js 服务保存任务与计划，浏览器插件连接你正常登录的标签页。
 
@@ -33,8 +33,8 @@
 | 岗位去重与历史记录 | 已实现 | SQLite 按平台与岗位 ID 关联 |
 | 匹配评分与问候语 | WorkBuddy 执行 | 根据用户资料和验证后的 JD 生成，保存为草稿 |
 | 本地定时采集 | 已实现 | 服务运行期间触发；关机、休眠期间不执行 |
-| 查看与审阅 | 已实现 | 本地页面查看岗位、正文和编辑草稿；侧栏核对对象并填入 |
-| 自动发送消息 | 未实现 | 当前需要用户在网页手动发送 |
+| 统一网页工作台 | 已实现 | 启动后自动打开；求职配置、岗位筛选、话术编辑、勾选与队列管理 |
+| 确认后批量发送 | 开发预览 | 自动识别聊天与控件、逐条核对发送；异常暂停，不确定不重发，尚待真实页面验收 |
 | GitHub 版本检测 | 已实现入口 | 配置仓库后检查正式 Release；不会自动安装 |
 | 猎聘 / 前程无忧 | 计划支持 | 已预留平台能力注册，尚无可用适配 |
 | 自动安装更新 / 开机自启 | 未实现 | 不会静默修改系统启动项或执行远程代码 |
@@ -120,9 +120,11 @@ WorkBuddy 需要先确认用户资料与搜索条件。当前搜索参数为关�
 
 ### 5. 查看结果并处理草稿
 
-让 WorkBuddy 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 ui`，获取本地页面地址；手动打开并输入配对码，可查看岗位、职责和编辑草稿。
+让 WorkBuddy 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 ui`，在系统默认普通浏览器自动打开工作台。可修改求职配置，筛选已收集的岗位，查看职责并编辑话术。配对码仅保留在页面内存；刷新后可再次运行 `ui` 自动连接，或手动输入配对码。
 
-需要填入聊天时，手动打开对应聊天，在插件中选择草稿并标记公司、岗位、招聘人和输入框。四项有效后核对对象，确认并填入正文，最后在网页手动发送。插件中的“已发送”记录来自用户确认，不代表平台送达证明。
+保存修改后勾选话术，点击“审阅并批量发送”，核对收件人与正文并确认。插件自动定位并核对当前聊天，或选择唯一匹配的已有会话；无需逐项人工标记。页面结构变化或目标不明确时暂停，尚未建立的聊天仍需先在网站打开。发送结果不确定不会重发；“页面已出现”不等于平台送达。详见 [工作台与发送流程](references/workbench.md)。
+
+插件侧栏只保留连接、断开、诊断和打开工作台。重载新版扩展后需重新授权标签页。
 
 ## 常用命令
 
@@ -130,7 +132,7 @@ WorkBuddy 需要先确认用户资料与搜索条件。当前搜索参数为关�
 
 | 命令 | 用途 |
 | --- | --- |
-| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 setup` | 启动服务并列出首次配置缺项 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 setup` | 启动服务、打开工作台并列出首次配置缺项 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 onboarding` | 复查连接、简历事实与求职条件（不输出资料正文） |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 doctor` | 环境和本机服务检查 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service start` | 启动本地服务 |
@@ -138,7 +140,7 @@ WorkBuddy 需要先确认用户资料与搜索条件。当前搜索参数为关�
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 jobs` | 查看已保存岗位 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 pending` | 查看待补详情/待审阅岗位 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 schedule list` | 查看采集计划 |
-| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 ui` | 获取本地工作台地址 |
+| `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 ui` | 在默认浏览器打开工作台 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 update check` | 检测 GitHub 正式 Release 版本 |
 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/job-hunt.ps1 service stop` | 停止服务 |
 
@@ -188,7 +190,7 @@ Node.js 服务是独立本地进程，已经保存的计划可在服务运行、
 <details>
 <summary><strong>能自动发消息、自动更新或切换其他平台吗？</strong></summary>
 
-目前不能。消息由用户手动发送；更新只检测配置仓库的正式 Release，不自动下载安装；猎聘与前程无忧尚未实现。
+经用户审阅确认的逐条发送队列已进入开发预览；真实页面适配仍需验收，不能保证无人值守发送。更新只检测正式 Release，不自动下载安装；猎聘与前程无忧尚未实现。
 
 </details>
 

@@ -1,5 +1,5 @@
 export const platforms=Object.freeze([
-  {id:'boss',label:'BOSS直聘',state:'available',search:true,details:true,chatFill:true,send:false},
+  {id:'boss',label:'BOSS直聘',state:'available',search:true,details:true,chatFill:true,send:true},
   {id:'liepin',label:'猎聘',state:'planned',search:false,details:false,chatFill:false,send:false},
   {id:'51job',label:'前程无忧',state:'planned',search:false,details:false,chatFill:false,send:false},
 ]);

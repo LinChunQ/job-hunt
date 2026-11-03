@@ -13,6 +13,7 @@ export class Engine {
     if (this.store.runs().some(run=>['pending','running','uncertain'].includes(run.status))) throw new Error('UNRESOLVED_TASK');
     this.disconnected=false;this.store.setMeta('blocked',false);return {ok:true};
   }
+  heartbeat() {if (!this.disconnected) this.lastPoll=this.now();}
   disconnect() {
     this.disconnected=true;this.lastPoll=-Infinity;
     for (const run of this.store.runs()) {
@@ -39,7 +40,7 @@ export class Engine {
         else if (existing.query?.query!==request.query || existing.query?.city!==request.city || existing.listPage!==request.page) throw new Error('DETAIL_CONTEXT_MISMATCH');
       }
       if (run.status==='pending') {
-        const reason=state.task ? 'UNRESOLVED_TASK' : state.blocked ? 'SERVICE_PAUSED' : !state.connected ? 'EXTENSION_NOT_CONNECTED' : state.cooldownRemainingSeconds ? 'TASK_COOLDOWN' : null;
+        const reason=(this.store.getMeta('deliveryBusy',false) || ['pending','dispatched'].includes(this.store.getMeta('browserAction')?.status)) ? 'DELIVERY_QUEUE_ACTIVE' : state.task ? 'UNRESOLVED_TASK' : state.blocked ? 'SERVICE_PAUSED' : !state.connected ? 'EXTENSION_NOT_CONNECTED' : state.cooldownRemainingSeconds ? 'TASK_COOLDOWN' : null;
         if (reason) {run.status='deferred';run.errorCode=reason;}
         else this._cooldown();
       }
@@ -51,6 +52,7 @@ export class Engine {
     if (this.disconnected) return {task:null,blocked:this.store.getMeta('blocked',false)};
     this.lastPoll=this.now();
     if (this.store.getMeta('blocked',false)) return {task:null,blocked:true};
+    if (this.store.getMeta('deliveryBusy',false) || ['pending','dispatched'].includes(this.store.getMeta('browserAction')?.status)) return {task:null};
     const run=this.store.runs().find(row=>row.status==='pending');
     if (!run) return {task:null};
     // 先记录已派发，再交给浏览器；崩溃后不能把这个动作重新排队。

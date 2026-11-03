@@ -7,6 +7,7 @@ import {platforms} from '../server/platforms.mjs';
 import {checkUpdate} from '../server/update.mjs';
 import {onboardingReport} from '../server/onboarding.mjs';
 import {installForWorkBuddy} from './install-workbuddy.mjs';
+import {openDashboard} from './open-dashboard.mjs';
 const args=process.argv.slice(2);
 function take(name) {const i=args.indexOf(name);if (i<0) return undefined;const value=args[i+1];if (!value || value.startsWith('--')) throw new Error('OPTION_VALUE_REQUIRED');args.splice(i,2);return value;}
 function inputFile(file) {
@@ -29,8 +30,19 @@ async function startService(dir,port) {
       throw new Error('SERVICE_START_FAILED');
     } finally {fs.closeSync(descriptor);fs.unlinkSync(lock);}
   }
+async function dashboard(dir,noOpen) {
+  const url='http://127.0.0.1:'+readBridge(dir).port;
+  if (noOpen) return {url,opened:false};
+  const status=await localRequest(dir,'/cli/status');
+  if (status.appVersion!==RELEASE.version) throw new Error('SERVICE_VERSION_RESTART_REQUIRED');
+  const launch=await localRequest(dir,'/cli/ui/launch');
+  const opened=await openDashboard(launch.url);
+  // 一次性网页凭证不进入 CLI 报告；打开失败仍可手动打开并配对。
+  return {url,opened,instruction:opened ? '已在系统默认浏览器打开本机工作台' : '浏览器未打开，请打开此本机地址并输入配对码'};
+}
 async function run() {
   const explicit=take('--state-dir'), port=Number(take('--port') || DEFAULT_PORT);
+  const noOpen=args.includes('--no-open');if (noOpen) args.splice(args.indexOf('--no-open'),1);
   const [command='help',action]=args;
   if (command==='version') return {name:'job-hunt',...RELEASE};
   if (command==='platforms') return {ok:true,platforms};
@@ -47,10 +59,12 @@ async function run() {
   if (command==='setup' || command==='onboarding') {
     const status=command==='setup' ? await startService(dir,port) : await localRequest(dir,'/cli/status');
     const {profile}=await localRequest(dir,'/cli/profile/get');
-    return onboardingReport({profile,status,root:ROOT});
+    const report=onboardingReport({profile,status,root:ROOT});
+    if (command==='setup') report.dashboard=await dashboard(dir,noOpen);
+    return report;
   }
   if (command==='pair') return {ok:true,pairing_code:readBridge(dir).key,instruction:'仅由 WorkBuddy 展示给当前用户，粘贴到本机扩展；不得写入报告、提交或推送'};
-  if (command==='ui') return {ok:true,url:'http://127.0.0.1:'+readBridge(dir).port,instruction:'手动打开本机页面并输入配对码，不自动操作浏览器'};
+  if (command==='ui') return {ok:true,...await dashboard(dir,noOpen)};
   const routes={status:'/cli/status',jobs:'/cli/jobs',pending:'/cli/pending',runs:'/cli/runs',task:'/cli/tasks/enqueue',reviews:'/cli/reviews/apply',resolve:'/cli/tasks/resolve'};
   if (command==='service' && action==='stop') return localRequest(dir,'/cli/stop');
   if (command==='profile') {

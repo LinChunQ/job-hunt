@@ -1,3 +1,6 @@
+import {prepareChatInPage} from './chat-adapter.js';
+import {chatDraftInPage} from './chat-draft.js';
+import {sendGreetingInPage} from './chat-send.js';
 import {createDraftController} from './draft-controller.js';
 import {fetchJobsInPage} from './page-search.js';
 import {fetchDetailCandidatesInPage} from './page-detail-candidates.js';
@@ -110,6 +113,32 @@ async function poll() {
   try {
     config = await configuration();
     if (!config) return;
+    const bound=await chrome.tabs.get(config.tabId).catch(()=>null);
+    const ui=await bridge('/extension/ui/next',{capability:1,tabId:config.tabId,chat:bound?.url?.startsWith('https://www.zhipin.com/web/geek/chat')===true},config.key);
+    if (ui.command) {
+      const command=ui.command;let result={ok:false,touched:false,phase:'preflight',errorCode:'AUTHORIZATION_REVOKED'};
+      if (await configuration(config.epoch)) {
+        if (command.type==='mark') {
+          await chrome.tabs.update(config.tabId,{active:true});
+          if (bound?.windowId) await chrome.windows.update(bound.windowId,{focused:true});
+        }
+        if (await configuration(config.epoch)) {
+          const func=command.type==='send' ? sendGreetingInPage : command.type==='inspect' ? prepareChatInPage : chatDraftInPage;
+          const args=command.type==='send' ? {commandId:command.id,draft:command.draft,deadline:command.deadline} : command.type==='inspect' ? {draft:command.draft,allowSelect:false} : {action:command.type,field:command.field};
+          try {
+            let ready=true;
+            if(command.type==='send') {
+              const [prepared]=await chrome.scripting.executeScript({target:{tabId:config.tabId,frameIds:[0]},world:'ISOLATED',func:prepareChatInPage,args:[{draft:command.draft}]});
+              if(!prepared?.result?.ok){ready=false;result=prepared?.result || {ok:false,touched:false,phase:'preflight',errorCode:'AUTO_CHAT_NOT_MATCHED'};}
+              if(!await configuration(config.epoch)){ready=false;result={ok:false,touched:false,phase:'preflight',errorCode:'AUTHORIZATION_REVOKED'};}
+            }
+            if(ready){const [entry]=await chrome.scripting.executeScript({target:{tabId:config.tabId,frameIds:[0]},world:'ISOLATED',func,args:[args]});result=entry?.result || {ok:false,errorCode:'CHAT_CHANNEL_UNCERTAIN'};}
+          } catch {result={ok:false,errorCode:'CHAT_CHANNEL_UNCERTAIN'};}
+        }
+      }
+      await bridge('/extension/ui/result',{id:command.id,result},config.key);
+      return;
+    }
     const reply = await bridge('/extension/next', {}, config.key);
     task = reply.task;
     if (!task || !await configuration(config.epoch)) return;
@@ -178,6 +207,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (sender.tab || sender.url !== chrome.runtime.getURL('popup.html')) return false;
   if (['draft-list','draft-update','draft-mark','draft-mark-status','draft-reset','draft-inspect','draft-fill','draft-report-sent'].includes(message?.type)) {
     draftController(message).then(sendResponse).catch(()=>sendResponse({ok:false,errorCode:'DRAFT_ACTION_FAILED'}));
+    return true;
+  }
+  if (message?.type==='open-dashboard') {
+    (async()=>{const saved=await chrome.storage.local.get(['key']);const launch=await bridge('/extension/ui/launch',{},saved.key);await chrome.tabs.create({url:launch.url});return {ok:true};})().then(sendResponse).catch(()=>{chrome.tabs.create({url:BASE});sendResponse({ok:true});});
     return true;
   }
   if (message?.type === 'diagnose') {

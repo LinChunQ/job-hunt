@@ -4,11 +4,14 @@ import path from 'node:path';
 import {randomBytes,timingSafeEqual} from 'node:crypto';
 import {Store} from './storage.mjs';
 import {Engine} from './engine.mjs';
+import {Delivery} from './delivery.mjs';
 import {ROOT,RELEASE,writePrivate} from './runtime.mjs';
 import {platforms} from './platforms.mjs';
 const code=error=>/^[A-Z][A-Z0-9_]{0,79}$/.test(error?.message || '') ? error.message : 'LOCAL_OPERATION_FAILED';
 export async function createService({dir,port=18674,now,cooldown}={}) {
   const store=new Store(dir), engine=new Engine(store,{version:RELEASE.version,now,cooldown});
+  const delivery=new Delivery(store,engine,{now});
+  const launches=new Map();
   const file=path.join(dir,'bridge.json');
   let previous;try {previous=JSON.parse(fs.readFileSync(file,'utf8'));} catch {}
   const key=/^[a-f0-9]{64}$/.test(previous?.key || '') ? previous.key : randomBytes(32).toString('hex');
@@ -30,7 +33,7 @@ export async function createService({dir,port=18674,now,cooldown}={}) {
     // Origin 与本机密钥双重检查；不允许招聘网页调用本机管理接口。
     if ((route.startsWith('/extension/') && !extension) || (route.startsWith('/cli/') && origin && origin!=='http://127.0.0.1:'+actualPort) || (origin && !extension && origin!=='http://127.0.0.1:'+actualPort)) return reply(403,{ok:false,errorCode:'ORIGIN_REJECTED'});
     const supplied=Buffer.from(req.headers.authorization || ''),expected=Buffer.from('Bearer '+key);
-    if (supplied.length!==expected.length || !timingSafeEqual(supplied,expected)) return reply(401,{ok:false,errorCode:'PAIRING_REJECTED'});
+    if (route!=='/ui/exchange' && (supplied.length!==expected.length || !timingSafeEqual(supplied,expected))) return reply(401,{ok:false,errorCode:'PAIRING_REJECTED'});
     if (!(req.headers['content-type'] || '').startsWith('application/json')) return reply(415,{ok:false,errorCode:'JSON_REQUIRED'});
     try {
       const chunks=[];let length=0;
@@ -38,9 +41,25 @@ export async function createService({dir,port=18674,now,cooldown}={}) {
       let body;try {body=JSON.parse(Buffer.concat(chunks).toString('utf8'));} catch {throw new Error('INVALID_JSON');}
       if (!body || typeof body!=='object' || Array.isArray(body)) throw new Error('OBJECT_REQUIRED');
       let value;
-      if (['/cli/status','/extension/status'].includes(route)) value=engine.status();
+      if (route==='/ui/exchange') {
+        if (origin!=='http://127.0.0.1:'+actualPort || typeof body.token!=='string') throw new Error('UI_LAUNCH_REJECTED');
+        const deadline=launches.get(body.token);launches.delete(body.token);
+        if (!deadline || Date.now()>deadline) throw new Error('UI_LAUNCH_EXPIRED');
+        value={ok:true,key};
+      } else if (['/cli/ui/launch','/extension/ui/launch'].includes(route)) {
+        for (const [token,deadline] of launches) if (Date.now()>deadline) launches.delete(token);
+        if (launches.size>=10) throw new Error('UI_LAUNCH_LIMIT');
+        const token=randomBytes(32).toString('hex');launches.set(token,Date.now()+60000);
+        value={ok:true,url:'http://127.0.0.1:'+actualPort+'/#launch='+token};
+      } else if (route==='/cli/delivery/status') value=delivery.status();
+      else if (route==='/cli/delivery/create') value=delivery.create(body);
+      else if (route==='/cli/delivery/control') value=delivery.control(body);
+      else if (route==='/cli/browser/action') value=delivery.request(body);
+      else if (route==='/extension/ui/next') value=delivery.next(body);
+      else if (route==='/extension/ui/result') value=delivery.result(body);
+      else if (['/cli/status','/extension/status'].includes(route)) value=engine.status();
       else if (route==='/extension/hello') {if (body.resume!==true) throw new Error('EXPLICIT_RESUME_REQUIRED');value=engine.resume();}
-      else if (route==='/extension/disconnect') value=engine.disconnect();
+      else if (route==='/extension/disconnect') {delivery.disconnect();value=engine.disconnect();}
       else if (route==='/extension/next') value=engine.claim();
       else if (route==='/extension/result') value=engine.complete(body);
       else if (route==='/cli/profile/get') value={ok:true,profile:store.profile()};
@@ -58,7 +77,7 @@ export async function createService({dir,port=18674,now,cooldown}={}) {
       else if (route==='/cli/drafts/update') value=store.draftAction('update',body);
       else if (route.startsWith('/extension/drafts/') && ['update','reserve','result','report-sent'].includes(route.split('/').at(-1))) {
         const action=route.split('/').at(-1);
-        if (action==='reserve' && (engine.status().blocked || engine.status().task)) throw new Error('SERVICE_PAUSED_OR_BUSY');
+        if (action==='reserve' && (engine.status().blocked || engine.status().task || delivery.busy())) throw new Error('SERVICE_PAUSED_OR_BUSY');
         value=store.draftAction(action,body);
       } else if (route==='/cli/stop') {reply(200,{ok:true,stopping:true});setImmediate(()=>server.close());return;}
       else return reply(404,{ok:false,errorCode:'ROUTE_NOT_FOUND'});
@@ -69,7 +88,7 @@ export async function createService({dir,port=18674,now,cooldown}={}) {
   try {await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});}
   catch(error) {store.close();throw error;}
   actualPort=server.address().port;writePrivate(file,{key,port:actualPort,pid:process.pid,version:RELEASE.version});
-  timer=setInterval(()=>{try {engine.tick();} catch {store.setMeta('blocked',true);}},1000);
+  timer=setInterval(()=>{try {delivery.expire();engine.tick();} catch {store.setMeta('blocked',true);}},1000);
   server.on('close',()=>{clearInterval(timer);store.close();});
-  return {server,store,engine,key,port:actualPort,close:()=>new Promise(resolve=>server.close(resolve))};
+  return {server,store,engine,delivery,key,port:actualPort,close:()=>new Promise(resolve=>server.close(resolve))};
 }

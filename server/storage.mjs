@@ -2,7 +2,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {createHash,randomUUID} from 'node:crypto';
 import path from 'node:path';
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const protectedStates=new Set(['fill_pending','filled_unconfirmed','user_reported_sent']);
+const protectedStates=new Set(['fill_pending','filled_unconfirmed','user_reported_sent','send_queued','send_dispatching','send_uncertain','sent_observed','send_not_retried']);
 const context=job=>hash([job.sourceKey,job.title,job.company,job.recruiter,job.recruiterTitle,job.jd]);
 const stamp=()=>new Date().toISOString();
 const checkedText=(value,max,required=false)=>{
@@ -27,9 +27,30 @@ export class Store {
     if (facts.length>100) throw new Error('PROFILE_TOO_LARGE');
     const preferences=input.preferences || {};
     const list=value=>{if (!Array.isArray(value) || value.length>30) throw new Error('INVALID_PROFILE');return value.map(x=>checkedText(x,100,true));};
-    const profile={displayName:checkedText(input.displayName || '',100),facts:facts.map(x=>checkedText(x,2000,true)),preferences:{keywords:list(preferences.keywords || []),cities:list(preferences.cities || []),notes:checkedText(preferences.notes || '',2000)}};
-    this.setMeta('profile',profile);return {ok:true,saved:true};
+    const current=this.profile();
+    if (input.revision!==undefined && input.revision!==(current?.revision || 0)) throw new Error('PROFILE_CHANGED');
+    const salary=value=>{if (value==null || value==='') return null;if (!Number.isFinite(value) || value<0 || value>1000) throw new Error('INVALID_SALARY');return value;};
+    const salaryMin=salary(preferences.salaryMin),salaryMax=salary(preferences.salaryMax);
+    if (salaryMin!==null && salaryMax!==null && salaryMin>salaryMax) throw new Error('INVALID_SALARY_RANGE');
+    const choice=(value,allowed)=>{if (!allowed.includes(value || '')) throw new Error('INVALID_PROFILE');return value || '';};
+    const profile={displayName:checkedText(input.displayName || '',100),facts:facts.map(x=>checkedText(x,2000,true)),revision:(current?.revision || 0)+1,preferences:{keywords:list(preferences.keywords || []),cities:list(preferences.cities || []),salaryMin,salaryMax,experience:choice(preferences.experience,['','应届','不限','1年以内','1-3年','3-5年','5-10年','10年以上']),degree:choice(preferences.degree,['','不限','大专','本科','硕士','博士']),workMode:choice(preferences.workMode,['','不限','现场','远程','混合']),notes:checkedText(preferences.notes || '',2000)}};
+    this.setMeta('profile',profile);this._bump();return {ok:true,saved:true,revision:profile.revision};
   }
+  deliveryDraft(id) {const row=this.db.prepare('SELECT data FROM greeting_drafts WHERE id=?').get(id);return row ? JSON.parse(row.data) : null;}
+  queueDraft(input) {
+    const draft=this.deliveryDraft(input.id),job=draft && this.job(draft.sourceKey);
+    if (!draft || draft.revision!==input.revision || draft.status!=='draft') throw new Error('DRAFT_CHANGED');
+    if (!draft.recruiter || !job?.detailVerified || !job.jd || draft.contextFingerprint!==context(job)) throw new Error('DRAFT_NOT_READY');
+    if (input.text!==draft.text) throw new Error('UNSAVED_DRAFT');
+    return draft;
+  }
+  deliveryTransition(id,expected,status,errorCode=null) {
+    const draft=this.deliveryDraft(id);
+    if (!draft || !expected.includes(draft.status)) throw new Error('DELIVERY_STATE_CHANGED');
+    draft.status=status;draft.revision++;draft.updatedAt=stamp();draft.lastErrorCode=errorCode;
+    draft.deliveryVerified=false;this._putDraft(draft);this._bump();return this._public(draft);
+  }
+  deliveryContextValid(draft) {const job=this.job(draft.sourceKey);return !!job?.detailVerified && !!job.jd && draft.contextFingerprint===context(job);}
   jobs() {return this.db.prepare('SELECT data FROM catalog_jobs ORDER BY rowid').all().map(row=>JSON.parse(row.data));}
   job(sourceKey) {const row=this.db.prepare('SELECT data FROM catalog_jobs WHERE source_key=?').get(sourceKey);return row ? JSON.parse(row.data) : null;}
   mergeJobs(jobs) {
@@ -76,7 +97,7 @@ export class Store {
     });
   }
   listDrafts(platform='boss') {
-    return {drafts:this.db.prepare('SELECT data FROM greeting_drafts WHERE platform=? ORDER BY rowid').all(platform).map(row=>this._public(JSON.parse(row.data))),revision:this.getMeta('revision',0),sendingSupported:false};
+    return {drafts:this.db.prepare('SELECT data FROM greeting_drafts WHERE platform=? ORDER BY rowid').all(platform).map(row=>this._public(JSON.parse(row.data))),revision:this.getMeta('revision',0),sendingSupported:true};
   }
   draftAction(action,input) {
     return this.transaction(()=>{

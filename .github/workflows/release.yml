@@ -28,4 +28,4 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$RELEASE_TAG" "$RUNNER_TEMP/job-hunt-release/job-hunt.zip" --verify-tag --title "job-hunt $RELEASE_TAG" --notes "完整 skill、Node.js 本地服务与浏览器插件。用户资料不包含在安装包中。当前仍为功能预览，消息由用户手动发送。"
+          gh release create "$RELEASE_TAG" "$RUNNER_TEMP/job-hunt-release/job-hunt.zip" --verify-tag --title "job-hunt $RELEASE_TAG" --notes "完整 skill、Node.js 本地服务与浏览器插件。用户资料不包含在安装包中。当前仍为功能预览，新增网页工作台与用户审阅确认的逐条发送队列；真实页面适配需验收。"
