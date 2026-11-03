@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory=$true)][string]$NodePath, [Parameter(Mandatory=$true)][string]$TemporaryRoot)
+﻿param([Parameter(Mandatory=$true)][string]$NodePath, [Parameter(Mandatory=$true)][string]$TemporaryRoot, [switch]$UseShortTemporaryRoot)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -11,6 +11,10 @@ function Rejects([scriptblock]$Operation, [string]$Code) {
     Check ($caught -eq $Code) ('Expected ' + $Code + ', got ' + $caught)
 }
 try {
+    if ($UseShortTemporaryRoot) {
+        $fileSystem = New-Object -ComObject Scripting.FileSystemObject
+        $TemporaryRoot = $fileSystem.GetFolder($TemporaryRoot).ShortPath
+    }
     $base = Test-JobHuntNode $NodePath
     Check ($null -ne $base -and $base.Sqlite) 'ACTUAL_NODE_PROBE_FAILED'
     $results += 'actual-node-and-sqlite-probe'
@@ -21,7 +25,8 @@ try {
     Copy-Item -LiteralPath $NodePath -Destination $copy
     $cache = Join-Path $TemporaryRoot '缓存'
     $node = Resolve-JobHuntNode -PackageRoot $root -CacheRoot $cache -WorkBuddyRoot $workBuddy -SystemNodes @($NodePath) -NoDownload
-    Check ($node.Source -eq 'workbuddy' -and $node.NodePath -eq $copy) 'WORKBUDDY_PRIORITY_FAILED'
+    # 同一文件的短路径和长路径可不同；规范化后再核对 WorkBuddy 来源与目标。
+    Check ($node.Source -eq 'workbuddy' -and (Get-Item -LiteralPath $node.NodePath).FullName -eq (Get-Item -LiteralPath $copy).FullName) 'WORKBUDDY_PRIORITY_FAILED'
     Check (-not (Test-Path -LiteralPath $cache)) 'REUSED_RUNTIME_CREATED_CACHE'
     $results += 'workbuddy-first-no-download-or-cache-write'
     $node = Resolve-JobHuntNode -PackageRoot $root -CacheRoot $cache -WorkBuddyRoot (Join-Path $TemporaryRoot 'missing') -SystemNodes @($NodePath) -NoDownload
@@ -72,7 +77,7 @@ try {
     $lock = [IO.File]::Open($lockPath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
     try { Rejects { Install-JobHuntNode -PackageRoot $root -CacheRoot $installCache -Architecture $base.Arch } 'RUNTIME_INSTALL_BUSY' } finally { $lock.Dispose() }
     $results += 'download-failure-cleanup-and-install-lock'
-    [pscustomobject]@{ ok=$true; checks=$results; siteRequestPerformed=$false; officialDownloadPerformed=$false } | ConvertTo-Json -Compress
+    [pscustomobject]@{ ok=$true; checks=$results; siteRequestPerformed=$false; officialDownloadPerformed=$false; shortPathRequested=$UseShortTemporaryRoot.IsPresent } | ConvertTo-Json -Compress
 } catch {
     [Console]::Error.WriteLine($_.Exception.Message)
     exit 1

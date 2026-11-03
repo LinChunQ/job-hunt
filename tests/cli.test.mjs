@@ -6,7 +6,7 @@ import path from 'node:path';
 import net from 'node:net';
 import {spawn} from 'node:child_process';
 import {ROOT,readBridge} from '../server/runtime.mjs';
-const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+import {waitForProcessExit,terminateTestService} from './process-helper.mjs';
 function command(args,root=ROOT) {return new Promise((resolve,reject)=>{const child=spawn(process.execPath,[path.join(root,'scripts/job-hunt.mjs'),...args],{cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe']});let output='',error='';child.stdout.on('data',value=>output+=value);child.stderr.on('data',value=>error+=value);const timer=setTimeout(()=>{child.kill();reject(new Error('CLI_TEST_TIMEOUT'));},15000);child.once('error',reject);child.once('exit',code=>{clearTimeout(timer);try {resolve({code,data:JSON.parse(output),error});} catch {reject(new Error('CLI_JSON_EXPECTED'));}});});}
 async function freePort() {const server=net.createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const port=server.address().port;await new Promise(resolve=>server.close(resolve));return port;}
 
@@ -31,8 +31,8 @@ test('CLI starts isolated service, persists profile and plan, pairs without logg
     result=await run('update','apply');assert.equal(result.data.errorCode,'UPDATE_ACTION_NOT_IMPLEMENTED');
     result=await run('ui');assert.equal(result.data.url,'http://127.0.0.1:'+port);assert.equal(JSON.stringify(result.data).includes(key),false);
     result=await run('service','stop');assert.equal(result.code,0);
-    let stopped=false;for(let i=0;i<30;i++) {await delay(100);try {process.kill(pid,0);} catch {stopped=true;break;}}assert.equal(stopped,true);
-  } finally {if(pid) {try {process.kill(pid);} catch {}}fs.rmSync(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
+    await waitForProcessExit(pid);
+  } finally {await terminateTestService(pid);fs.rmSync(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
 });
 
 
@@ -52,5 +52,6 @@ test('installed package can initialize without developer files or creating site 
     report=await command(['onboarding','--state-dir',state],installed);
     assert.equal(report.data.checks.resumeFactsAvailable,false);
     assert.equal((await command(['service','stop','--state-dir',state],installed)).code,0);
-  } finally {if(pid) {try {process.kill(pid);} catch {}}fs.rmSync(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
+    await waitForProcessExit(pid);
+  } finally {await terminateTestService(pid);fs.rmSync(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
 });

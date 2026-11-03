@@ -7,6 +7,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import net from 'node:net';
 import {ROOT,readBridge} from '../server/runtime.mjs';
+import {waitForProcessExit,terminateTestService} from './process-helper.mjs';
 const exec=promisify(execFile);
 const windows=process.platform==='win32';
 const options={skip:!windows,timeout:90000};
@@ -16,8 +17,11 @@ async function powershell(script,args=[],env=process.env) {return exec(shell,['-
 test('Windows runtime selection, offline fallback, checksum and cleanup invariants',options,async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'job-hunt-bootstrap-'));
   try {
-    const {stdout}=await powershell(path.join(ROOT,'tests/runtime-bootstrap.test.ps1'),['-NodePath',process.execPath,'-TemporaryRoot',dir]);
-    const report=JSON.parse(stdout);assert.equal(report.ok,true);assert.equal(report.checks.length,8);assert.equal(report.officialDownloadPerformed,false);
+    for (const shortPath of [false,true]) {
+      const temporary=path.join(dir,shortPath ? 'short path fixture' : 'long path fixture');fs.mkdirSync(temporary);
+      const {stdout}=await powershell(path.join(ROOT,'tests/runtime-bootstrap.test.ps1'),['-NodePath',process.execPath,'-TemporaryRoot',temporary,...(shortPath ? ['-UseShortTemporaryRoot'] : [])]);
+      const report=JSON.parse(stdout);assert.equal(report.ok,true);assert.equal(report.checks.length,8);assert.equal(report.officialDownloadPerformed,false);assert.equal(report.shortPathRequested,shortPath);
+    }
   } finally {fs.rmSync(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
 });
 
@@ -37,6 +41,7 @@ test('Windows wrapper forwards private input paths and preserves status without 
     const rejected=await powershell(path.join(ROOT,'scripts/job-hunt.ps1'),['--no-runtime-download','unknown-command','--state-dir',dir],env).then(()=>null,error=>error);
     assert.equal(rejected.code,2);assert.equal(JSON.parse(rejected.stdout).errorCode,'UNKNOWN_COMMAND');
     await run('service','stop','--state-dir',dir);
+    await waitForProcessExit(pid);
     assert.equal(process.env.PATH,original);
-  } finally {if(pid) {try {process.kill(pid);} catch {}}fs.rmSync(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
+  } finally {await terminateTestService(pid);fs.rmSync(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
 });
