@@ -1,0 +1,1 @@
+{"id":"example-plan","enabled":false,"intervalMinutes":30,"task":{"platform":"boss","action":"search","query":"示例岗位","city":"101010100"}}

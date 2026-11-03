@@ -1,0 +1,27 @@
+{
+  "name": "job-hunt",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "本地求职 skill、Node.js 服务与普通浏览器插件",
+  "engines": {
+    "node": "^22.20.0 || >=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "privacy": "node scripts/privacy-check.mjs",
+    "check": "npm run privacy && npm test",
+    "release:check": "node scripts/release-check.mjs"
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "release.json",
+    "scripts/",
+    "server/",
+    "extension/",
+    "web/",
+    "references/",
+    "examples/"
+  ]
+}

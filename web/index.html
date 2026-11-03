@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>job-hunt 本地工作台</title><link rel="stylesheet" href="/app.css"></head>
+<body><header><h1>job-hunt</h1><p>本地查看与审阅 · 不自动发送消息</p></header>
+<main><form id="connect"><label for="key">本机配对码</label><input id="key" type="password" autocomplete="off" required minlength="64" maxlength="64"><button>查看本机数据</button></form>
+<p id="status" role="status">请从 WorkBuddy 获取本机配对码。关闭页面后需要重新输入。</p><section><h2>岗位清单</h2><div id="jobs"></div></section>
+<section><h2>已生成的问候语</h2><p>可在此查看和编辑草稿；填入聊天由浏览器侧栏和用户操作。</p><div id="drafts"></div></section></main><script type="module" src="/app.js"></script></body></html>

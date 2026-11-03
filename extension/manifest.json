@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "job-hunt · 求职助手",
+  "version": "0.1.0",
+  "description": "WorkBuddy 本地求职助手：岗位采集、草稿审阅与用户确认填入。",
+  "minimum_chrome_version": "120",
+  "permissions": [
+    "storage",
+    "scripting",
+    "alarms",
+    "activeTab",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://www.zhipin.com/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "打开岗位助手侧边栏"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.zhipin.com/*"
+      ],
+      "js": [
+        "heartbeat.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  }
+}

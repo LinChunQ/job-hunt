@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {createService} from '../server/http.mjs';
+import {cleanPages} from '../server/platforms.mjs';
+
+test('local HTTP authenticates, restricts origins, saves review edits and does not leak pairing key',async t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'job-hunt-http-'));
+  const service=await createService({dir,port:0,cooldown:0});
+  t.after(async()=>{await service.close();fs.rmSync(dir,{recursive:true,force:true});});
+  const base='http://127.0.0.1:'+service.port,extension='chrome-extension://'+'a'.repeat(32);
+  const post=async(route,body={},extra={})=>fetch(base+route,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+service.key,...extra},body:JSON.stringify(body)});
+  const page=await fetch(base+'/');assert.equal(page.status,200);assert.equal((await page.text()).includes(service.key),false);
+  assert.equal((await post('/cli/status',{}, {authorization:''})).status,401);
+  assert.equal((await post('/cli/status',{}, {origin:'https://www.zhipin.com'})).status,403);
+  assert.equal((await post('/cli/status',{}, {origin:extension})).status,403);
+  assert.equal((await post('/extension/status')).status,403);
+  assert.equal((await post('/extension/hello',{resume:true},{origin:extension})).status,200);
+  assert.equal((await post('/extension/next',{}, {origin:extension})).status,200);
+  const request={platform:'boss',action:'search',query:'示例',city:'101010100'};
+  const pages=[{ok:true,jobs:[{encryptJobId:'demo',jobName:'示例',brandName:'虚构公司',recruiterName:'示例招聘人',detail:{jobId:'demo',identityVerified:true,description:'示例正文'}}]}];
+  service.store.mergeJobs(cleanPages(pages,request));const pending=service.store.pending()[0];
+  let response=await post('/cli/reviews/apply',{reviews:[{sourceKey:pending.sourceKey,contextFingerprint:pending.contextFingerprint,score:80,greeting:'您好，这是虚构示例。'}]});assert.equal(response.status,200);
+  let draft=(await (await post('/extension/drafts/list',{}, {origin:extension})).json()).drafts[0];
+  response=await post('/cli/drafts/update',{id:draft.id,revision:draft.revision,action:'save',text:'您好，已修改示例。'},{origin:base});assert.equal(response.status,200);
+  assert.equal(service.store.listDrafts().drafts[0].text,'您好，已修改示例。');
+  assert.equal((await post('/cli/drafts/reserve',draft)).status,404);
+  await post('/cli/profile/put',{displayName:'示例',facts:['虚构事实'],token:'excluded'});
+  const profile=await (await post('/cli/profile/get')).json();assert.equal(profile.profile.token,undefined);
+});

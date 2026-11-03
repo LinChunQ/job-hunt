@@ -1,0 +1,10 @@
+{
+  "name": "job-hunt",
+  "version": "0.1.0",
+  "channel": "preview",
+  "protocolVersion": 2,
+  "storageSchemaVersion": 1,
+  "githubRepository": null,
+  "updatePublicKey": null,
+  "automaticUpdateEnabled": false
+}
