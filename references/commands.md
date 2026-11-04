@@ -11,6 +11,8 @@ Windows 从包根目录运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass
 | `pair` | 只向当前用户展示配对码 |
 | `status` / `runs` / `jobs` / `pending` | 状态、最近任务、目录、待审阅 |
 | `profile get` / `profile put --input FILE` | SQLite 中的用户资料 |
+| `collection list` / `collection create --input FILE` / `collection control --input FILE` | 串行采集与断点控制，详见 [采集管线](collection-pipeline.md) |
+| `pool search --input FILE` / `pool action --input FILE` / `pool history --input FILE` | 岗位池分页筛选、流转与历史 |
 | `task --input FILE` | 提交一次动作 |
 | `reviews --input FILE` | 写评分与话术 |
 | `schedule list` / `schedule put --input FILE` | 列出或保存计划 |
@@ -63,3 +65,20 @@ Windows 从包根目录运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass
 示例关闭，按用户要求启用。最短 5 分钟，不是网站安全阈值。休眠期间错过的周期合并，不积压请求。不包含 AI 自动唤醒和自动发消息。
 
 不确定任务结案：`{"requestId":"待核实编号","confirmedByUser":true}`。只有用户已核实后才能提交；仍需插件人工恢复。
+
+
+## 管线输入示例
+
+以下为虚构示例，编码必须替换为经过核实的实际值，文件放在包外。
+
+```json
+{"requestId":"example-collection","platform":"boss","keywords":["示例岗位"],"cities":[{"name":"示例城市","code":"000000001"}],"maxPages":1,"detailLimit":5,"requestBudget":20,"filters":{"salaryMin":15,"salaryMax":25,"titleExcludes":["示例排除词"],"filterUnknownSalary":false}}
+```
+
+控制输入：`{"id":"example-collection","action":"pause"}`，action 可用 `pause/resume/cancel`。
+
+岗位检索：`{"stage":"review","sort":"score","page":1,"pageSize":15}`。
+
+批量流转：`{"action":"archive","confirmedByUser":true,"items":[{"sourceKey":"boss:example","revision":1}]}`。revision 取最新岗位 `poolRevision`；归档需当前用户授权，不代造确认。
+
+历史查询：`{"sourceKey":"boss:example"}`。

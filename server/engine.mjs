@@ -47,6 +47,7 @@ export class Engine {
       this.store.putRun(run);return {ok:['pending','skipped'].includes(run.status),task:run,siteRequestPerformed:false};
     });
   }
+  cancelPending(id) {const run=this.store.run(id);if (run?.status==='pending') this._finish(run,'failed','COLLECTION_PAUSED_BEFORE_CLAIM');return {cancelled:run?.status==='failed'};}
   claim() {
     this.expire();
     if (this.disconnected) return {task:null,blocked:this.store.getMeta('blocked',false)};
@@ -70,7 +71,7 @@ export class Engine {
     }
     try {
       const jobs=cleanPages(input.pages,run.request);
-      const result=this.store.mergeJobs(jobs);
+      const result={...this.store.mergeJobs(jobs),sourceKeys:jobs.map(x=>x.sourceKey),hasMore:input.pages[0].hasMore===true,pageFingerprint:fingerprint(jobs.map(x=>x.sourceKey).sort())};
       Object.assign(run,{status:'done',result,finishedAt:this.now()});this.store.putRun(run);this._cooldown();
       return {accepted:true,blocked:false};
     } catch(error) {

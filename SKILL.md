@@ -30,11 +30,14 @@ Windows 后续所有命令均使用同一原生入口。引导参数 `--runtime-
 
 ## 搜索与详情
 
+多城市 / 多关键词优先使用 `collection create --input FILE`，输入条件、经过核实的城市编码、每组合页数、整轮详情上限及请求预算；先读 [采集管线](references/collection-pipeline.md)。网页与 CLI 使用同一队列，可暂停、从已完成页面续采、查看过滤原因。它只采集和预筛，不执行 AI 或发送。`collection list` 查进度，`collection control --input FILE` 暂停/续采/取消；不可绕过暂停或不确定任务。
+
+
 - 单次搜索最多一页 15 条；单次详情最多一个岗位，内部刷新一次列表后再请求详情。默认任务间隔 180 秒是本地负载限制，不是站点许可或安全保证。
-- 先读 `jobs` 和 `pending`，使用 `sourceKey` 去重；已有验证 JD 不重复抓取。
+- 先读 `pool search --input FILE`、`jobs` 和 `pending`，使用 `sourceKey` 去重；已有验证 JD 不重复抓取。
 - 写包外任务 JSON，用 `task --input FILE` 提交。每个动作生成唯一 `requestId`。同一编号幂等；`deferred` 不代表已排入等待队列，需要读原因，满足条件后才可创建新动作。
 - 用 `runs` 查询结果，不要重复提交或把超时当作成功。`uncertain` 需用户核实；`resolve --input FILE` 只结案本地记录，不自动重跑或解除暂停。
-- 详情采用已采集岗位的原关键词、城市、列表页及 jobId，不能凭名称关联。岗位不在新鲜列表时不要换岗位补抓。
+- 单次搜索可显式指定 `page: 1–3`，扩展保持该页码。详情采用已采集岗位的原关键词、城市、列表页及 jobId，不能凭名称关联。岗位不在新鲜列表时不要换岗位补抓。
 
 ## 审阅与话术
 

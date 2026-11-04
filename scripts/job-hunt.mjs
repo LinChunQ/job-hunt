@@ -47,7 +47,7 @@ async function run() {
   if (command==='version') return {name:'job-hunt',...RELEASE};
   if (command==='platforms') return {ok:true,platforms};
   if (command==='update') {if (action!=='check') throw new Error('UPDATE_ACTION_NOT_IMPLEMENTED');return checkUpdate();}
-  if (command==='help') return {ok:true,commands:['install --skills-dir DIR','setup','onboarding','doctor','profile get|put --input FILE','service start|stop','pair','status','platforms','jobs','pending','runs','task --input FILE','reviews --input FILE','schedule list|put --input FILE','resolve --input FILE','update check','ui']};
+  if (command==='help') return {ok:true,commands:['install --skills-dir DIR','setup','onboarding','doctor','profile get|put --input FILE','service start|stop','pair','status','platforms','jobs','pending','runs','task --input FILE','reviews --input FILE','schedule list|put --input FILE','resolve --input FILE','update check','collection list|create|control --input FILE','pool search|action|history --input FILE','ui']};
   if (command==='install') return installForWorkBuddy({root:ROOT,skillsRoot:take('--skills-dir')});
   const dir=runtimeDir(explicit);
   if (command==='doctor') {
@@ -71,6 +71,8 @@ async function run() {
     if (action==='get') return localRequest(dir,'/cli/profile/get');
     if (action==='put') return localRequest(dir,'/cli/profile/put',inputFile(take('--input')));
   }
+  if (command==='collection' && ['list','create','control'].includes(action)) return localRequest(dir,'/cli/collections/'+action,action==='list' ? {} : inputFile(take('--input')));
+  if (command==='pool' && ['search','action','history'].includes(action)) return localRequest(dir,'/cli/jobs/'+action,inputFile(take('--input')));
   if (command==='schedule') {
     if (action==='list') return localRequest(dir,'/cli/schedules/list');
     if (action==='put') return localRequest(dir,'/cli/schedules/put',inputFile(take('--input')));

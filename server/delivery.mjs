@@ -12,7 +12,7 @@ export class Delivery {
     const items=input.items.map(x=>({id:x.id,revision:x.revision,text:x.text}));
     const batches=this.store.getMeta('deliveryBatches',[]),prior=batches.find(x=>x.id===input.requestId);
     if (prior) {if (prior.fingerprint!==fingerprint(items)) throw new Error('BATCH_ID_CONFLICT');return {ok:true,replayed:true,batch:prior};}
-    if (this.busy() || this.engine.status().task || ['pending','dispatched'].includes(this.store.getMeta('browserAction')?.status)) throw new Error('BROWSER_BUSY');
+    if (this.store.getMeta('collectionBusy',false) || this.busy() || this.engine.status().task || ['pending','dispatched'].includes(this.store.getMeta('browserAction')?.status)) throw new Error('BROWSER_BUSY');
     if (!this.engine.status().connected || this.engine.status().blocked || (!this.browser?.capable || this.now()-this.browser.checkedAt>100000)) throw new Error('EXTENSION_UPGRADE_OR_CONNECT_REQUIRED');
     // 一次事务锁定已审阅的正文与版本，提交后不能再被编辑或 AI 覆盖。
     return this.store.transaction(()=>{
@@ -28,7 +28,7 @@ export class Delivery {
     const batches=this.store.getMeta('deliveryBatches',[]),batch=batches.find(x=>x.id===input.id);
     if (!batch || !['pause','continue','cancel','resolve'].includes(input.action)) throw new Error('INVALID_BATCH_ACTION');
     if (input.action==='continue') {
-      if (this.engine.status().task) throw new Error('BROWSER_BUSY');
+      if (this.store.getMeta('collectionBusy',false) || this.engine.status().task) throw new Error('BROWSER_BUSY');
       if (batch.items.some(x=>x.status==='uncertain') || !['paused','waiting'].includes(batch.status)) throw new Error('UNRESOLVED_DELIVERY');
       if (this.engine.status().blocked || !this.engine.status().connected) throw new Error('SERVICE_PAUSED');
       if (batch.cancelRequested) throw new Error('BATCH_CANCELLED');
@@ -46,7 +46,7 @@ export class Delivery {
   }
   request(input) {
     if (!['status','mark','reset','inspect'].includes(input.action) || (input.action==='mark' && !['company','title','recruiter','editor','send','receipt'].includes(input.field))) throw new Error('INVALID_BROWSER_ACTION');
-    if (this.engine.status().task) throw new Error('BROWSER_BUSY');
+    if (this.store.getMeta('collectionBusy',false) || this.engine.status().task) throw new Error('BROWSER_BUSY');
     this.expire();const old=this.store.getMeta('browserAction');
     if (old && ['pending','dispatched'].includes(old.status)) throw new Error('BROWSER_ACTION_BUSY');
     const draft=input.action==='inspect' ? this.store.deliveryDraft(input.id) : null;

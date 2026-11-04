@@ -1,12 +1,12 @@
 <!-- job-hunt:hero:start -->
-<h1 align="center">job-hunt v0.2.0</h1>
+<h1 align="center">job-hunt v0.3.0</h1>
 
 <p align="center">本地求职助手：岗位采集、AI 匹配评分、个性化打招呼草稿与人工审阅。</p>
 
 <p align="center">
   <a href="https://github.com/LinChunQ/job-hunt/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/LinChunQ/job-hunt?style=flat&amp;logo=github"></a>
   <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="Release 附件累计下载次数" src="https://img.shields.io/github/downloads/LinChunQ/job-hunt/total?style=flat&amp;label=release%20downloads"></a>
-  <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.2.0-preview&amp;color=orange&amp;style=flat"></a>
+  <a href="https://github.com/LinChunQ/job-hunt/releases"><img alt="当前源码版本" src="https://img.shields.io/static/v1?label=version&amp;message=v0.3.0-preview&amp;color=orange&amp;style=flat"></a>
   <img alt="Node.js 22.20+ 的 22.x 或 24+" src="https://img.shields.io/static/v1?label=Node.js&amp;message=22.20%2B+%2822.x%29+%7C+24%2B&amp;color=339933&amp;style=flat&amp;logo=nodedotjs">
   <img alt="SQLite 本地存储" src="https://img.shields.io/static/v1?label=storage&amp;message=SQLite&amp;color=003B57&amp;style=flat&amp;logo=sqlite">
   <a href="https://github.com/LinChunQ/job-hunt/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/LinChunQ/job-hunt?style=flat"></a>
@@ -30,14 +30,17 @@
 | 普通浏览器会话连接 | 已实现 | 手动登录、一次加载扩展、侧栏配对授权 |
 | 岗位搜索与职责详情 | 已实现 · BOSS | 单次一页列表或一个岗位详情 |
 | 招聘人公开称呼 | 已实现 | 取公开展示的称呼和职务，缺失不猜测 |
-| 岗位去重与历史记录 | 已实现 | SQLite 按平台与岗位 ID 关联 |
+| 岗位去重与历史记录 | 已实现 | SQLite 按平台与岗位 ID 关联，软删除保留去重身份 |
+| 串行采集管线 | 已实现 | 多城市 / 关键词、预筛、详情复用、请求预算、断点续采和重复页检测 |
 | 匹配评分与问候语 | WorkBuddy 执行 | 根据用户资料和验证后的 JD 生成，保存为草稿 |
 | 本地定时采集 | 已实现 | 服务运行期间触发；关机、休眠期间不执行 |
-| 统一网页工作台 | 已实现 | 启动后自动打开；求职配置、岗位筛选、话术编辑、勾选与队列管理 |
+| 统一网页工作台 | 已实现 | 启动后自动打开；求职配置、岗位池分组筛选 / 分页、采集进度、详情、回收站与话术队列 |
 | 确认后批量发送 | 开发预览 | 自动识别聊天与控件、逐条核对发送；异常暂停，不确定不重发，尚待真实页面验收 |
 | GitHub 版本检测 | 已实现入口 | 配置仓库后检查正式 Release；不会自动安装 |
 | 猎聘 / 前程无忧 | 计划支持 | 已预留平台能力注册，尚无可用适配 |
 | 自动安装更新 / 开机自启 | 未实现 | 不会静默修改系统启动项或执行远程代码 |
+
+岗位池与采集参数见 [采集管线](references/collection-pipeline.md)。本轮页面与管线仍需真实浏览器采集验收。
 
 ## 工作方式
 

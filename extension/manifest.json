@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "job-hunt · 求职助手",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "WorkBuddy 本地求职助手：通信、岗位数据获取与经用户审阅确认的浏览器动作。",
   "minimum_chrome_version": "120",
   "permissions": [

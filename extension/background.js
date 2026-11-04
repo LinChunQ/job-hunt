@@ -165,7 +165,7 @@ async function poll() {
       if (!current || current.tabId !== config.tabId) throw new Error('授权标签页已断开');
       const [injection] = await chrome.scripting.executeScript({
         target: {tabId: config.tabId}, world: 'MAIN', func: fetchJobsInPage,
-        args: [{...task.form, page: String(page)}],
+        args: [{...task.form, page: String(Number(task.form.page || 1)+page-1)}],
       });
       const result = injection?.result;
       if (!result?.ok) {

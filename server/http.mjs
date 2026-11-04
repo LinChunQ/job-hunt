@@ -1,3 +1,4 @@
+import {Collection} from './collection.mjs';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,6 +12,7 @@ const code=error=>/^[A-Z][A-Z0-9_]{0,79}$/.test(error?.message || '') ? error.me
 export async function createService({dir,port=18674,now,cooldown}={}) {
   const store=new Store(dir), engine=new Engine(store,{version:RELEASE.version,now,cooldown});
   const delivery=new Delivery(store,engine,{now});
+  const collection=new Collection(store,engine,{now});
   const launches=new Map();
   const file=path.join(dir,'bridge.json');
   let previous;try {previous=JSON.parse(fs.readFileSync(file,'utf8'));} catch {}
@@ -65,9 +67,17 @@ export async function createService({dir,port=18674,now,cooldown}={}) {
       else if (route==='/cli/profile/get') value={ok:true,profile:store.profile()};
       else if (route==='/cli/profile/put') value=store.profile(body);
       else if (route==='/cli/platforms') value={ok:true,platforms};
-      else if (route==='/cli/tasks/enqueue') value=engine.enqueue(body);
+      else if (route==='/cli/tasks/enqueue') {if (collection.ownsBrowser()) throw new Error('COLLECTION_ALREADY_ACTIVE');value=engine.enqueue(body);}
       else if (route==='/cli/tasks/resolve') value=engine.resolve(body);
       else if (route==='/cli/runs') value={ok:true,runs:store.runs().slice(0,100)};
+      else if (route==='/cli/collections/list') value=collection.list();
+      else if (route==='/cli/collections/create') value=collection.create(body);
+      else if (route==='/cli/collections/control') value=collection.control(body);
+      else if (route==='/cli/jobs/summary') value=store.jobSummary();
+      else if (route==='/cli/jobs/get') value={ok:true,job:store.jobDetail(body.sourceKey)};
+      else if (route==='/cli/jobs/search') value=store.searchJobs(body);
+      else if (route==='/cli/jobs/action') value=store.jobActions(body);
+      else if (route==='/cli/jobs/history') value={ok:true,events:store.jobHistory(body.sourceKey)};
       else if (route==='/cli/jobs') value={ok:true,jobs:store.jobs()};
       else if (route==='/cli/pending') value={ok:true,jobs:store.pending(),siteRequestPerformed:false};
       else if (route==='/cli/reviews/apply') value=store.reviews(body);
@@ -88,7 +98,7 @@ export async function createService({dir,port=18674,now,cooldown}={}) {
   try {await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});}
   catch(error) {store.close();throw error;}
   actualPort=server.address().port;writePrivate(file,{key,port:actualPort,pid:process.pid,version:RELEASE.version});
-  timer=setInterval(()=>{try {delivery.expire();engine.tick();} catch {store.setMeta('blocked',true);}},1000);
+  timer=setInterval(()=>{try {delivery.expire();engine.expire();collection.tick();if (!collection.ownsBrowser()) engine.tick();} catch {store.setMeta('blocked',true);}},1000);
   server.on('close',()=>{clearInterval(timer);store.close();});
-  return {server,store,engine,delivery,key,port:actualPort,close:()=>new Promise(resolve=>server.close(resolve))};
+  return {server,store,engine,delivery,collection,key,port:actualPort,close:()=>new Promise(resolve=>server.close(resolve))};
 }
